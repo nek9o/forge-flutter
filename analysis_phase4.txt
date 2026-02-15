@@ -1,0 +1,11 @@
+Analyzing flutter-forge...                                      
+
+   info - Import of a library in the 'lib/src' directory of another package - flutter\dev\integration_tests\windowing_test\lib\main.dart:13:8 - implementation_imports
+   info - Don't invoke 'print' in production code - lib\core\services\stability_matrix_service.dart:98:7 - avoid_print
+  error - Target of URI doesn't exist: '../../core/services/stability_matrix_service.dart' - lib\features\wildcard\ui\wildcard_list.dart:6:8 - uri_does_not_exist
+warning - The value of the field '_errorMessage' isn't used - lib\features\wildcard\ui\wildcard_list.dart:20:11 - unused_field
+  error - Undefined name 'stabilityMatrixServiceProvider' - lib\features\wildcard\ui\wildcard_list.dart:35:32 - undefined_identifier
+warning - The value of the local variable 'name' isn't used - lib\features\wildcard\ui\wildcard_list.dart:60:15 - unused_local_variable
+  error - Undefined name 'name__' - lib\features\wildcard\ui\wildcard_list.dart:61:28 - undefined_identifier
+  error - Undefined name 'stabilityMatrixServiceProvider' - lib\features\wildcard\ui\wildcard_list.dart:165:42 - undefined_identifier
+

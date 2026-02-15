@@ -1,0 +1,69 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import '../../features/settings/models/sd_model.dart';
+
+class ForgeApiClient {
+  final String baseUrl;
+  final http.Client _client;
+
+  ForgeApiClient({this.baseUrl = 'http://127.0.0.1:7860', http.Client? client})
+    : _client = client ?? http.Client();
+
+  Future<List<SDModel>> getSDModels() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/sdapi/v1/sd-models'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => SDModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load models: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to connect to Forge: $e');
+    }
+  }
+
+  Future<void> setSDModel(String modelTitle) async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/sdapi/v1/options'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'sd_model_checkpoint': modelTitle}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to set model: ${response.statusCode}');
+    }
+  }
+
+  Future<String> txt2img(Map<String, dynamic> params) async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/sdapi/v1/txt2img'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(params),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['images'] != null && data['images'].isNotEmpty) {
+        return data['images'][0];
+      }
+      throw Exception('No images returned');
+    } else {
+      throw Exception('Failed to generate image: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> getProgress() async {
+    final response = await _client.get(Uri.parse('$baseUrl/sdapi/v1/progress'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to get progress');
+    }
+  }
+}

@@ -8,14 +8,15 @@ import '../models/prompt_tag.dart';
 import '../services/prompt_parser.dart';
 import '../store/prompt_store.dart';
 
-class PromptEditor extends ConsumerStatefulWidget {
-  const PromptEditor({super.key});
+class NegativePromptEditor extends ConsumerStatefulWidget {
+  const NegativePromptEditor({super.key});
 
   @override
-  ConsumerState<PromptEditor> createState() => _PromptEditorState();
+  ConsumerState<NegativePromptEditor> createState() =>
+      _NegativePromptEditorState();
 }
 
-class _PromptEditorState extends ConsumerState<PromptEditor> {
+class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
   late TextEditingController _textController;
   final FocusNode _focusNode = FocusNode();
 
@@ -37,14 +38,14 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
     if (text.isEmpty) return;
 
     final tags = PromptParser.parse(text);
-    ref.read(promptTagsProvider.notifier).setTags(tags);
+    ref.read(negativePromptTagsProvider.notifier).setTags(tags);
     _textController.clear();
   }
 
   void _syncTagsToText() {
-    final tags = ref.read(promptTagsProvider);
+    final tags = ref.read(negativePromptTagsProvider);
     final text = tags.map((t) => t.formatted).join(', ');
-    ref.read(promptProvider.notifier).state = text;
+    ref.read(negativePromptProvider.notifier).state = text;
   }
 
   void _onTextChanged(String value) {
@@ -53,7 +54,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
       final text = value.substring(0, value.length - 1).trim();
       if (text.isNotEmpty) {
         final newTag = PromptTag(text: text, weight: 1.0);
-        ref.read(promptTagsProvider.notifier).addTag(newTag);
+        ref.read(negativePromptTagsProvider.notifier).addTag(newTag);
         _syncTagsToText();
         _textController.clear();
       }
@@ -62,7 +63,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final tags = ref.watch(promptTagsProvider);
+    final tags = ref.watch(negativePromptTagsProvider);
 
     return Column(
       children: [
@@ -85,7 +86,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
             },
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: 'プロンプトを入力... (カンマで区切るとチップに変換)',
+              hintText: 'ネガティブプロンプトを入力... (カンマで区切るとチップに変換)',
               hintStyle: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -108,7 +109,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
             child: tags.isEmpty
                 ? Center(
                     child: Text(
-                      'チップがありません。上のフィールドにプロンプトを入力してください。',
+                      'チップがありません。上のフィールドにネガティブプロンプトを入力してください。',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -121,14 +122,14 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                       padding: const EdgeInsets.all(8.0),
                       onReorder: (oldIndex, newIndex) {
                         ref
-                            .read(promptTagsProvider.notifier)
+                            .read(negativePromptTagsProvider.notifier)
                             .reorderTags(oldIndex, newIndex);
                         _syncTagsToText();
                       },
                       children: List.generate(tags.length, (index) {
                         final tag = tags[index];
                         return Container(
-                          key: ValueKey('${tag.text}_$index'),
+                          key: ValueKey('neg_${tag.text}_$index'),
                           child: _buildPromptChip(context, index, tag),
                         );
                       }),
@@ -149,32 +150,25 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
           newWeight = double.parse(newWeight.toStringAsFixed(2));
 
           ref
-              .read(promptTagsProvider.notifier)
+              .read(negativePromptTagsProvider.notifier)
               .updateTagWeight(index, newWeight);
           _syncTagsToText();
         }
       },
       child: InputChip(
-        label: Text(
-          '${tag.isLora ? "LoRA: " : ""}${tag.text} : ${tag.weight.toStringAsFixed(2)}',
-        ),
+        label: Text('${tag.text} : ${tag.weight.toStringAsFixed(2)}'),
         onDeleted: () {
-          ref.read(promptTagsProvider.notifier).removeTag(index);
+          ref.read(negativePromptTagsProvider.notifier).removeTag(index);
           _syncTagsToText();
         },
-        avatar: tag.isLora ? const Icon(Icons.style, size: 16) : null,
         deleteIcon: const Icon(Icons.close, size: 18),
-        backgroundColor: tag.isLora
-            ? Theme.of(context).colorScheme.tertiaryContainer
-            : (double.parse(tag.weight.toStringAsFixed(2)) > 1.0
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Theme.of(context).colorScheme.surfaceContainerHighest),
+        backgroundColor: double.parse(tag.weight.toStringAsFixed(2)) > 1.0
+            ? Theme.of(context).colorScheme.errorContainer
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
         labelStyle: TextStyle(
-          color: tag.isLora
-              ? Theme.of(context).colorScheme.onTertiaryContainer
-              : (double.parse(tag.weight.toStringAsFixed(2)) > 1.0
-                    ? Theme.of(context).colorScheme.onPrimaryContainer
-                    : Theme.of(context).colorScheme.onSurface),
+          color: double.parse(tag.weight.toStringAsFixed(2)) > 1.0
+              ? Theme.of(context).colorScheme.onErrorContainer
+              : Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

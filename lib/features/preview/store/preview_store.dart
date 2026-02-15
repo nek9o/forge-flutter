@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
+import '../../prompt/store/prompt_store.dart';
+import '../../settings/store/settings_store.dart';
+import '../services/png_metadata_parser.dart';
 
 enum GenerationStatus { idle, generating, completed, error }
 
@@ -11,12 +15,16 @@ class PreviewState {
   final double progress;
   final String? base64Image;
   final String? errorMessage;
+  final Map<String, dynamic>? metadata;
+  final String? rawParameters;
 
   PreviewState({
     this.status = GenerationStatus.idle,
     this.progress = 0.0,
     this.base64Image,
     this.errorMessage,
+    this.metadata,
+    this.rawParameters,
   });
 
   PreviewState copyWith({
@@ -24,12 +32,16 @@ class PreviewState {
     double? progress,
     String? base64Image,
     String? errorMessage,
+    Map<String, dynamic>? metadata,
+    String? rawParameters,
   }) {
     return PreviewState(
       status: status ?? this.status,
       progress: progress ?? this.progress,
       base64Image: base64Image ?? this.base64Image,
       errorMessage: errorMessage ?? this.errorMessage,
+      metadata: metadata ?? this.metadata,
+      rawParameters: rawParameters ?? this.rawParameters,
     );
   }
 }
@@ -40,8 +52,12 @@ class PreviewStore extends StateNotifier<PreviewState> {
 
   PreviewStore(this.ref) : super(PreviewState());
 
-  Future<void> generateImage(String prompt, String negativePrompt) async {
+  Future<void> generateImage() async {
     if (state.status == GenerationStatus.generating) return;
+
+    final prompt = ref.read(promptProvider);
+    final negativePrompt = ref.read(negativePromptProvider);
+    final settings = ref.read(generationSettingsProvider);
 
     state = state.copyWith(
       status: GenerationStatus.generating,
@@ -52,23 +68,37 @@ class PreviewStore extends StateNotifier<PreviewState> {
 
     try {
       final client = ref.read(forgeApiClientProvider);
-      final params = {
+      final Map<String, dynamic> params = {
         'prompt': prompt,
         'negative_prompt': negativePrompt,
-        'steps': 20,
-        'width': 512,
-        'height': 512,
-        'cfg_scale': 7,
+        ...settings.toJson(),
       };
 
       final base64Image = await client.txt2img(params);
 
       _stopProgressPolling();
+
+      Map<String, dynamic>? metadata;
+      String? rawParameters;
+
+      try {
+        final bytes = base64Decode(base64Image);
+        final pngInfo = PngMetadataParser.parse(bytes);
+        if (pngInfo.containsKey('parameters')) {
+          rawParameters = pngInfo['parameters'];
+          metadata = PngMetadataParser.parseParameters(rawParameters!);
+        }
+      } catch (e) {
+        print('Error parsing metadata: $e');
+      }
+
       if (mounted) {
         state = state.copyWith(
           status: GenerationStatus.completed,
           progress: 1.0,
           base64Image: base64Image,
+          metadata: metadata,
+          rawParameters: rawParameters,
         );
       }
     } catch (e) {

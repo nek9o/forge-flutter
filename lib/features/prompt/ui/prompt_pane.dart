@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:native_context_menu/native_context_menu.dart' as ncm;
 
-import '../../wildcard/ui/wildcard_list.dart';
-import '../store/prompt_store.dart';
+import 'negative_prompt_editor.dart';
 import 'prompt_editor.dart';
 
 class PromptPane extends ConsumerWidget {
@@ -10,46 +10,35 @@ class PromptPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('プロンプト', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Expanded(flex: 3, child: PromptEditor()),
-                const SizedBox(width: 16),
-                const Expanded(flex: 1, child: WildcardList()),
-              ],
-            ),
+    return ncm.ContextMenuRegion(
+      onItemSelected: (item) {
+        if (item.title == 'クリア') {
+          // TODO: Implement clear logic if needed
+        }
+      },
+      menuItems: [
+        ncm.MenuItem(title: 'クリア'),
+        ncm.MenuItem(title: '全選択'),
+      ],
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: Theme.of(context).dividerColor),
           ),
-          const SizedBox(height: 16),
-          Text('ネガティブプロンプト', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Container(
-            height: 100,
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Theme.of(context).dividerColor),
-            ),
-            child: TextField(
-              maxLines: null,
-              onChanged: (value) {
-                ref.read(negativePromptProvider.notifier).state = value;
-              },
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'negative prompt...',
-              ),
-            ),
-          ),
-        ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('プロンプト', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            const Expanded(flex: 3, child: PromptEditor()),
+            const SizedBox(height: 16),
+            Text('ネガティブプロンプト', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            const Expanded(flex: 2, child: NegativePromptEditor()),
+          ],
+        ),
       ),
     );
   }

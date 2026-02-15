@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../features/settings/models/lora.dart';
+import '../../features/settings/models/sampler.dart';
+import '../../features/settings/models/scheduler.dart';
 import '../../features/settings/models/sd_model.dart';
 
 class ForgeApiClient {
@@ -25,6 +28,55 @@ class ForgeApiClient {
       }
     } catch (e) {
       throw Exception('Failed to connect to Forge: $e');
+    }
+  }
+
+  Future<List<Sampler>> getSamplers() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/sdapi/v1/samplers'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Sampler.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load samplers: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch samplers: $e');
+    }
+  }
+
+  Future<List<Scheduler>> getSchedulers() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/sdapi/v1/schedulers'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Scheduler.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load schedulers: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch schedulers: $e');
+    }
+  }
+
+  Future<List<Lora>> getLoras() async {
+    try {
+      final response = await _client.get(Uri.parse('$baseUrl/sdapi/v1/loras'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Lora.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load loras: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch loras: $e');
     }
   }
 

@@ -13,13 +13,6 @@ Analyzing flutter-forge...
    info - Statements in an if should be enclosed in a block - lib\features\settings\store\settings_store.dart:80:7 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\features\settings\store\settings_store.dart:82:7 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\features\settings\store\settings_store.dart:84:7 - curly_braces_in_flow_control_structures
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\settings\ui\settings_pane.dart:129:35 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\settings\ui\settings_pane.dart:171:35 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\settings\ui\settings_pane.dart:211:35 - deprecated_member_use
-  error - The argument type 'ThemeData' can't be assigned to the parameter type 'ShadThemeData?'.  - lib\main.dart:39:14 - argument_type_not_assignable
-   info - 'useTextTheme' is deprecated and shouldn't be used. This property has been replaced by the more aptly named useMaterial3Typography property and no longer has any function in V8 and will be removed in v9.0.0 - lib\main.dart:46:11 - deprecated_member_use
-  error - The argument type 'ThemeData' can't be assigned to the parameter type 'ShadThemeData?'.  - lib\main.dart:52:18 - argument_type_not_assignable
-   info - 'useTextTheme' is deprecated and shouldn't be used. This property has been replaced by the more aptly named useMaterial3Typography property and no longer has any function in V8 and will be removed in v9.0.0 - lib\main.dart:58:11 - deprecated_member_use
    info - Don't invoke 'print' in production code - test\test_prompt_bug.dart:6:3 - avoid_print
    info - Don't invoke 'print' in production code - test\test_prompt_bug.dart:12:3 - avoid_print
    info - Don't invoke 'print' in production code - test\test_prompt_bug.dart:18:3 - avoid_print

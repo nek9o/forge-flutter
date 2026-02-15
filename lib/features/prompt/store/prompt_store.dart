@@ -13,12 +13,19 @@ class PromptTagsNotifier extends StateNotifier<List<PromptTag>> {
     state = tags;
   }
 
+  void addTag(PromptTag tag) {
+    final newState = List<PromptTag>.from(state);
+    newState.add(tag);
+    state = newState;
+  }
+
   void updateTagWeight(int index, double newWeight) {
     if (index >= 0 && index < state.length) {
       final oldTag = state[index];
       final newTag = PromptTag(
         text: oldTag.text,
         weight: newWeight,
+        isLora: oldTag.isLora,
         id: oldTag.id,
       );
       final newState = List<PromptTag>.from(state);
@@ -45,6 +52,11 @@ class PromptTagsNotifier extends StateNotifier<List<PromptTag>> {
 }
 
 final promptTagsProvider =
+    StateNotifierProvider<PromptTagsNotifier, List<PromptTag>>((ref) {
+      return PromptTagsNotifier();
+    });
+
+final negativePromptTagsProvider =
     StateNotifierProvider<PromptTagsNotifier, List<PromptTag>>((ref) {
       return PromptTagsNotifier();
     });

@@ -1,44 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:multi_split_view/multi_split_view.dart';
 
 import '../../preview/ui/preview_pane.dart';
 import '../../prompt/ui/prompt_pane.dart';
 import '../../settings/ui/settings_pane.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Ensure a minimum width for the 3-pane layout to prevent crushing
-          // If the window is too small, we might want to switch via media query,
-          // but here we just constrain the minimum width of the content
-          // so it becomes scrollable or just clipped rather than erroring?
-          // Actually, overflow is acceptable or we should use SingleChildScrollView with scrollDirection: Axis.horizontal?
-          // For a desktop app, usually we just set minimum window size (done in main.dart).
-          // But to be safe, let's wrap in a constrained box or allow scrolling if absolutely needed?
-          // Since windowManager sets minimum size, we might not need this if it works.
-          // But let's check the user request "Make sure layout doesn't break".
-          // If the user forcibly resizes smaller than min size (some OS allow this), or if min size is too small.
-          return ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: 1000,
-            ), // Match min size in main.dart
-            child: Row(
-              children: [
-                // Left: Settings Panel
-                const SettingsPane(),
+          final width = constraints.maxWidth;
 
-                // Center: Prompt Area
-                const Expanded(flex: 2, child: PromptPane()),
-
-                // Right: Preview Area
-                const Expanded(flex: 2, child: PreviewPane()),
+          if (width >= 1200) {
+            // デスクトップレイアウト: マルチスプリットビュー
+            return MultiSplitView(
+              initialAreas: [
+                Area(builder: (context, area) => const SettingsPane(), flex: 2),
+                Area(builder: (context, area) => const PreviewPane(), flex: 4),
+                Area(builder: (context, area) => const PromptPane(), flex: 4),
               ],
-            ),
-          );
+            );
+          } else if (width >= 600) {
+            // タブレットレイアウト: 設定をDrawer等に検討可能だが、一旦2カラム
+            return Row(
+              children: [
+                const Expanded(flex: 1, child: PreviewPane()),
+                const Expanded(flex: 1, child: PromptPane()),
+              ],
+            );
+          } else {
+            // モバイルレイアウト: タブ切り替え
+            return DefaultTabController(
+              length: 3,
+              child: Column(
+                children: [
+                  const TabBar(
+                    tabs: [
+                      Tab(icon: Icon(Icons.settings), text: '設定'),
+                      Tab(icon: Icon(Icons.image), text: 'プレビュー'),
+                      Tab(icon: Icon(Icons.edit), text: 'プロンプト'),
+                    ],
+                  ),
+                  const Expanded(
+                    child: TabBarView(
+                      children: [SettingsPane(), PreviewPane(), PromptPane()],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
         },
       ),
     );

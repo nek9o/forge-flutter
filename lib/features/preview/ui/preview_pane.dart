@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../prompt/store/prompt_store.dart';
 import '../store/preview_store.dart';
+import 'png_info_pane.dart';
+import 'png_info_tab.dart';
 
 class PreviewPane extends ConsumerWidget {
   const PreviewPane({super.key});
@@ -12,13 +13,47 @@ class PreviewPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final previewState = ref.watch(previewStoreProvider);
-    // prompt and negativePrompt are only needed for the button action,
-    // so we don't watch them here to avoid rebuilds on every keystroke.
 
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: const TabBar(
+              tabs: [
+                Tab(text: '生成プレビュー'),
+                Tab(text: 'PNG Info (D&D)'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                // Tab 1: Generation Preview
+                _buildGenerationPreview(context, ref, previewState),
+                // Tab 2: PNG Info Drag & Drop
+                const PngInfoTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenerationPreview(
+    BuildContext context,
+    WidgetRef ref,
+    PreviewState previewState,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black.withAlpha(51),
-        border: Border(left: BorderSide(color: Theme.of(context).dividerColor)),
+        color: Colors.black.withAlpha(26),
+        border: Border(
+          left: BorderSide(color: Theme.of(context).dividerColor),
+          right: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Column(
         children: [
@@ -27,10 +62,13 @@ class PreviewPane extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('生成プレビュー', style: Theme.of(context).textTheme.titleLarge),
-                IconButton(
-                  onPressed: () {
-                    if (previewState.base64Image != null) {
+                Text(
+                  '生成結果',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ), // Changed text
+                if (previewState.base64Image != null)
+                  IconButton(
+                    onPressed: () {
                       showDialog(
                         context: context,
                         builder: (context) => Dialog(
@@ -63,10 +101,10 @@ class PreviewPane extends ConsumerWidget {
                           ),
                         ),
                       );
-                    }
-                  },
-                  icon: const Icon(Icons.fullscreen),
-                ),
+                    },
+                    icon: const Icon(Icons.fullscreen),
+                    tooltip: 'フルスクリーン表示',
+                  ),
               ],
             ),
           ),
@@ -76,7 +114,7 @@ class PreviewPane extends ConsumerWidget {
                 margin: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withAlpha(77),
@@ -89,24 +127,68 @@ class PreviewPane extends ConsumerWidget {
                   aspectRatio: 1,
                   child: previewState.base64Image != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           child: Image.memory(
                             base64Decode(previewState.base64Image!),
                             fit: BoxFit.contain,
                             gaplessPlayback: true,
                           ),
                         )
-                      : const Center(child: Text('No Image Generated')),
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.image_outlined,
+                                size: 64,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                '画像が生成されていません',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
                 ),
               ),
             ),
           ),
           if (previewState.errorMessage != null)
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Error: ${previewState.errorMessage}',
-                style: const TextStyle(color: Colors.red),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Card(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'エラー: ${previewState.errorMessage}',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           Padding(
@@ -114,36 +196,51 @@ class PreviewPane extends ConsumerWidget {
               horizontal: 16.0,
               vertical: 8.0,
             ),
-            child: LinearProgressIndicator(value: previewState.progress),
+            child: Column(
+              children: [
+                if (previewState.status == GenerationStatus.generating)
+                  LinearProgressIndicator(
+                    value: previewState.progress,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
+            child: FilledButton.icon(
               onPressed: previewState.status == GenerationStatus.generating
                   ? null
                   : () {
-                      final prompt = ref.read(promptProvider);
-                      final negativePrompt = ref.read(negativePromptProvider);
-                      ref
-                          .read(previewStoreProvider.notifier)
-                          .generateImage(prompt, negativePrompt);
+                      ref.read(previewStoreProvider.notifier).generateImage();
                     },
               icon: previewState.status == GenerationStatus.generating
                   ? const SizedBox(
                       width: 24,
                       height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.auto_awesome),
               label: Text(
                 previewState.status == GenerationStatus.generating
-                    ? 'Generating...'
-                    : 'Generate',
+                    ? '生成中...'
+                    : '画像を生成',
               ),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
+          ),
+          const Expanded(
+            flex: 2,
+            child: SingleChildScrollView(child: PngInfoPane()),
           ),
         ],
       ),

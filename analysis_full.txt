@@ -1,9 +1,0 @@
-Analyzing flutter-forge...                                      
-
-   info - Import of a library in the 'lib/src' directory of another package - flutter\dev\integration_tests\windowing_test\lib\main.dart:13:8 - implementation_imports
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\preview\ui\preview_pane.dart:10:29 - deprecated_member_use
-   info - 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre - lib\features\preview\ui\preview_pane.dart:33:56 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\preview\ui\preview_pane.dart:37:43 - deprecated_member_use
-   info - 'surfaceVariant' is deprecated and shouldn't be used. Use surfaceContainerHighest instead. This feature was deprecated after v3.18.0-0.1.pre - lib\features\settings\ui\settings_pane.dart:11:46 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\settings\ui\settings_pane.dart:11:61 - deprecated_member_use
-

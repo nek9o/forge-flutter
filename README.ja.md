@@ -12,7 +12,7 @@ Forge Flutter Client は、[SD-WebUI-Forge](https://github.com/lllyasviel/stable
 - **アプリ名:** Forge Flutter Client
 - **バージョン:** v0.1.0-alpha
 - **コンセプト:** SD-WebUI-Forge用の超軽量デスクトップアプリ（メモリ消費の極小化）
-- **主要な成果:** リリースビルドでのメモリ使用量 約55MB（ブラウザ版の約1/8）
+- **主要な成果:** リリースビルドでのメモリ使用量 起動時約55MB / 使用時約80MB（ブラウザ版は起動直後で約300MB）
 
 ## 2. 技術スタック (Technical Stack)
 
@@ -36,7 +36,11 @@ Forge Flutter Client は、[SD-WebUI-Forge](https://github.com/lllyasviel/stable
 既存の WebUI（Gradioベース）は多機能ですが、ブラウザ自体のメモリ消費が激しく、低・中スペックPCでの画像生成時にリソースを圧迫していると感じたため開発を開始しました。
 「道具」として、よりサクサク動き、かつ洗練されたデザインの専用環境を求めて構築しています。
 
-## 5. コントリビューション方針 (Contribution)
+## 5. クイックスタート (Quick Start)
+
+初めての方は [クイックスタートガイド](docs/QUICKSTART.ja.md) をご覧ください。StabilityMatrix + Forge Neo 環境での API 接続手順を解説しています。
+
+## 6. コントリビューション方針 (Contribution)
 
 本プロジェクトは現在アルファ版であり、未実装の機能やバグが存在します。
 

@@ -12,7 +12,7 @@ Forge Flutter Client is an ultra-lightweight desktop application for [SD-WebUI-F
 - **App Name:** Forge Flutter Client
 - **Version:** v0.1.0-alpha
 - **Concept:** An ultra-lightweight desktop app for SD-WebUI-Forge (minimizing memory usage)
-- **Key Achievement:** ~55 MB memory usage in release build (approx. 1/8 of the browser-based version)
+- **Key Achievement:** ~55 MB memory at startup / ~80 MB during use (browser-based WebUI uses ~300 MB at startup alone)
 
 ## 2. Technical Stack
 
@@ -35,7 +35,11 @@ Forge Flutter Client is an ultra-lightweight desktop application for [SD-WebUI-F
 
 Existing WebUI solutions (Gradio-based) are feature-rich, but the browser itself consumes significant memory, putting strain on low- to mid-spec PCs during image generation. This project was born from the desire for a dedicated, snappy, and well-designed tool that stays out of the way.
 
-## 5. Contribution
+## 5. Quick Start
+
+New to Forge Flutter Client? See the [Quick Start Guide](docs/QUICKSTART.md) for setup instructions with StabilityMatrix + Forge Neo via API.
+
+## 6. Contribution
 
 This project is currently in alpha. There are unimplemented features and known bugs.
 

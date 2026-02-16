@@ -44,8 +44,19 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-font
+# ローカル環境のフォントファイル
+font/
 
-analysis*
-analyze*
-build*
+# Flutter自動生成メタデータ
+.metadata
+.flutter-plugins-dependencies
+
+# 開発中の一時解析・ビルドログ
+analysis*.txt
+analyze*.txt
+build_check.txt
+build_output.txt
+final_analysis*.txt
+
+# testディレクトリ内の一時ファイル
+test/*.txt

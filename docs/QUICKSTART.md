@@ -3,7 +3,7 @@
 This guide walks you through getting started with Forge Flutter Client.
 
 > [!IMPORTANT]
-> This guide assumes you have installed **Stable Diffusion WebUI Forge (Forge Neo)** via **StabilityMatrix** and will connect via **API**.
+> This guide assumes you have installed **Stable Diffusion WebUI Forge (Forge Classic Neo)** via **StabilityMatrix** and will connect via **API**.
 
 ---
 
@@ -11,28 +11,28 @@ This guide walks you through getting started with Forge Flutter Client.
 
 - **Windows 10/11**
 - **StabilityMatrix** installed
-- **Forge Neo** installed via StabilityMatrix
+- **Forge Classic Neo** installed via StabilityMatrix
 - At least one **Stable Diffusion model (.safetensors)** downloaded
 
 ---
 
-## 1. Enable Forge Neo API
+## 1. Enable Forge Classic Neo API
 
 Forge Flutter Client communicates with Forge via its API. You need to enable API access in Forge.
 
 ### Steps
 
 1. Open **StabilityMatrix** and navigate to the "Packages" section in the sidebar
-2. Find Forge Neo and click the **gear icon (Launch Options)**
+2. Find Forge Classic Neo and click the **gear icon (Launch Options)**
 3. In the "Additional Arguments" section, enable the **`--api`** option
    - Check the checkbox if available
    - Or manually type `--api` in the input field
 4. **Save** the settings
-5. **Launch** (or restart) Forge Neo
+5. **Launch** (or restart) Forge Classic Neo
 
 ### Verify API Access
 
-Once Forge Neo is running, open the following URL in your browser:
+Once Forge Classic Neo is running, open the following URL in your browser:
 
 ```
 http://127.0.0.1:7860/docs
@@ -41,7 +41,7 @@ http://127.0.0.1:7860/docs
 If you see the Swagger UI with a list of API endpoints, the API is working correctly.
 
 > [!TIP]
-> StabilityMatrix launches Forge Neo on **port 7860** by default.
+> StabilityMatrix launches Forge Classic Neo on **port 7860** by default.
 > If you've changed the port, adjust the API URL in the app settings accordingly.
 
 ---
@@ -81,13 +81,13 @@ When you launch the app, you'll see three panels: prompt editor (left), preview 
 
 The **API URL** input field is at the top of the settings panel.
 
-| Item                    | Value                   |
-| ----------------------- | ----------------------- |
-| Default value           | `http://127.0.0.1:7861` |
-| Forge Neo standard port | `http://127.0.0.1:7860` |
+| Item                            | Value                   |
+| ------------------------------- | ----------------------- |
+| Default value                   | `http://127.0.0.1:7861` |
+| Forge Classic Neo standard port | `http://127.0.0.1:7860` |
 
 > [!WARNING]
-> The app's default value (port `7861`) may differ from Forge Neo's standard port (`7860`).
+> The app's default value (port `7861`) may differ from Forge Classic Neo's standard port (`7860`).
 > Check the port number shown in Forge's startup log and update the API URL if needed.
 
 When connected successfully, the model list and sampler options will load automatically in the settings panel.
@@ -141,19 +141,19 @@ Click "Send to txt2img" to apply the extracted metadata directly to your generat
 
 ### Cannot Connect
 
-| Check                 | Solution                                               |
-| --------------------- | ------------------------------------------------------ |
-| Is Forge Neo running? | Check its status in StabilityMatrix                    |
-| Is the API enabled?   | Verify `--api` is in the launch options                |
-| Is the port correct?  | Check Forge's startup log and update the API URL       |
-| Firewall              | Ensure security software isn't blocking the connection |
+| Check                         | Solution                                               |
+| ----------------------------- | ------------------------------------------------------ |
+| Is Forge Classic Neo running? | Check its status in StabilityMatrix                    |
+| Is the API enabled?           | Verify `--api` is in the launch options                |
+| Is the port correct?          | Check Forge's startup log and update the API URL       |
+| Firewall                      | Ensure security software isn't blocking the connection |
 
 ### Model List Not Loading
 
-- Wait for Forge Neo to fully start, then refresh the settings panel
+- Wait for Forge Classic Neo to fully start, then refresh the settings panel
 - Verify model files (`.safetensors`) are in StabilityMatrix's models directory
 
 ### Image Generation Fails
 
-- Check Forge Neo's console for errors
+- Check Forge Classic Neo's console for errors
 - If VRAM is insufficient, reduce image size or lower the step count

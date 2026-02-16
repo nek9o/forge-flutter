@@ -31,6 +31,10 @@ Forge Flutter Client is an ultra-lightweight desktop application for [SD-WebUI-F
 - **PNG Info:** Drag & drop images to parse prompt metadata and apply it directly to generation settings.
 - **Portable:** No installation required. Simply extract and run the EXE.
 
+> [!NOTE]
+> Pre-built binaries are currently available for **Windows only**.
+> Linux / macOS users will need to build from source. See the [Quick Start Guide](docs/QUICKSTART.md) for instructions.
+
 ## 4. Motivation
 
 Existing WebUI solutions (Gradio-based) are feature-rich, but the browser itself consumes significant memory, putting strain on low- to mid-spec PCs during image generation. This project was born from the desire for a dedicated, snappy, and well-designed tool that stays out of the way.

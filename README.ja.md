@@ -31,6 +31,10 @@ Forge Flutter Client は、[SD-WebUI-Forge](https://github.com/lllyasviel/stable
 - **PNG Info機能:** 画像をドラッグ＆ドロップしてプロンプト情報を解析し、そのまま生成設定に反映できます。
 - **ポータブル動作:** インストール不要。解凍したフォルダ内の EXE を実行するだけで動作します。
 
+> [!NOTE]
+> 現在、動作確認済みのビルドは **Windows 版のみ** 提供しています。
+> Linux / macOS をお使いの方はソースコードからビルドしてください。手順は [クイックスタートガイド](docs/QUICKSTART.ja.md) をご参照ください。
+
 ## 4. 開発の動機 (Motivation)
 
 既存の WebUI（Gradioベース）は多機能ですが、ブラウザ自体のメモリ消費が激しく、低・中スペックPCでの画像生成時にリソースを圧迫していると感じたため開発を開始しました。

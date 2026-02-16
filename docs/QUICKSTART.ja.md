@@ -52,7 +52,7 @@ Swagger UI が表示され、APIエンドポイントの一覧が確認できれ
 
 1. [Releases ページ](https://github.com/fal-114514/forge-flutter/releases) から最新の ZIP ファイルをダウンロード
 2. 任意のフォルダに解凍
-3. `flutter_forge.exe` を実行
+3. `forge_flutter.exe` を実行
 
 ### ソースからビルドする場合
 

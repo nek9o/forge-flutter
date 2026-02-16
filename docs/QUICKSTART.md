@@ -52,7 +52,7 @@ If you see the Swagger UI with a list of API endpoints, the API is working corre
 
 1. Download the latest ZIP from the [Releases page](https://github.com/fal-114514/forge-flutter/releases)
 2. Extract to any folder
-3. Run `flutter_forge.exe`
+3. Run `forge_flutter.exe`
 
 ### Building from Source
 

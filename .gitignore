@@ -58,5 +58,5 @@ build_check.txt
 build_output.txt
 final_analysis*.txt
 
-# testディレクトリ内の一時ファイル
-test/*.txt
+# testディレクトリ全体を無視
+test/

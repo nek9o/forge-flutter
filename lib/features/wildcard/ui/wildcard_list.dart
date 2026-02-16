@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/services/stability_matrix_service.dart';
 import '../../prompt/services/prompt_parser.dart';
@@ -36,7 +37,6 @@ class _WildcardListState extends ConsumerState<WildcardList> {
       final savedPath = await service.getSavedPath();
 
       if (savedPath == null || !(await service.validatePath(savedPath))) {
-        // Fallback to defaults if no path
         _loadDefaultTags();
         return;
       }
@@ -96,42 +96,50 @@ class _WildcardListState extends ConsumerState<WildcardList> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: 200,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(left: BorderSide(color: Theme.of(context).dividerColor)),
+        color: colorScheme.surface,
+        border: Border(
+          left: BorderSide(color: colorScheme.outlineVariant.withAlpha(40)),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 12, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Wildcards',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.refresh, size: 18),
+                  icon: PhosphorIcon(
+                    PhosphorIcons.arrowClockwise(),
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant.withAlpha(160),
+                  ),
                   onPressed: _loadWildcards,
                   tooltip: 'Reload',
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: colorScheme.outlineVariant.withAlpha(40)),
           if (_errorMessage != null)
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(10),
               child: Text(
                 _errorMessage!,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: colorScheme.error, fontSize: 12),
               ),
             ),
           if (_isLoading)
@@ -149,9 +157,8 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                       tag,
                       style: TextStyle(
                         fontStyle: isWildcard ? FontStyle.italic : null,
-                        color: isWildcard
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
+                        color: isWildcard ? colorScheme.primary : null,
+                        fontSize: 13,
                       ),
                     ),
                     dense: true,
@@ -170,7 +177,7 @@ class _WildcardListState extends ConsumerState<WildcardList> {
               ),
             ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(10),
             child: TextButton.icon(
               onPressed: () async {
                 final service = ref.read(stabilityMatrixServiceProvider);
@@ -179,7 +186,7 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                   await _loadWildcards();
                 }
               },
-              icon: const Icon(Icons.link, size: 16),
+              icon: PhosphorIcon(PhosphorIcons.link(), size: 14),
               label: const Text(
                 'Link StabilityMatrix',
                 style: TextStyle(fontSize: 12),

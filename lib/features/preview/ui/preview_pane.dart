@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../core/l10n.dart';
 import '../store/preview_store.dart';
 import 'png_info_pane.dart';
 import 'png_info_tab.dart';
@@ -13,16 +15,18 @@ class PreviewPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final previewState = ref.watch(previewStoreProvider);
+    final locale = ref.watch(localeProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return DefaultTabController(
       length: 2,
       child: Column(
         children: [
           Container(
-            color: Theme.of(context).colorScheme.surface,
-            child: const TabBar(
+            color: colorScheme.surfaceContainerLow,
+            child: TabBar(
               tabs: [
-                Tab(text: '生成プレビュー'),
+                Tab(text: L.of(locale, 'generation_preview')),
                 Tab(text: 'PNG Info (D&D)'),
               ],
             ),
@@ -30,9 +34,7 @@ class PreviewPane extends ConsumerWidget {
           Expanded(
             child: TabBarView(
               children: [
-                // Tab 1: Generation Preview
                 _buildGenerationPreview(context, ref, previewState),
-                // Tab 2: PNG Info Drag & Drop
                 const PngInfoTab(),
               ],
             ),
@@ -47,25 +49,35 @@ class PreviewPane extends ConsumerWidget {
     WidgetRef ref,
     PreviewState previewState,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withAlpha(26),
-        border: Border(
-          left: BorderSide(color: Theme.of(context).dividerColor),
-          right: BorderSide(color: Theme.of(context).dividerColor),
-        ),
-      ),
+      color: colorScheme.surface,
       child: Column(
         children: [
+          // ヘッダー
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '生成結果',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ), // Changed text
+                Row(
+                  children: [
+                    PhosphorIcon(
+                      PhosphorIcons.image(),
+                      size: 20,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      L.of(ref.read(localeProvider), 'generation_preview'),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
                 if (previewState.base64Image != null)
                   IconButton(
                     onPressed: () {
@@ -88,11 +100,14 @@ class PreviewPane extends ConsumerWidget {
                               Positioned(
                                 top: 20,
                                 right: 20,
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.close,
+                                child: IconButton.filled(
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.black54,
+                                  ),
+                                  icon: PhosphorIcon(
+                                    PhosphorIcons.x(),
                                     color: Colors.white,
-                                    size: 30,
+                                    size: 22,
                                   ),
                                   onPressed: () => Navigator.of(context).pop(),
                                 ),
@@ -102,27 +117,21 @@ class PreviewPane extends ConsumerWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.fullscreen),
-                    tooltip: 'フルスクリーン表示',
+                    icon: PhosphorIcon(PhosphorIcons.arrowsOut(), size: 20),
+                    tooltip: L.of(ref.read(localeProvider), 'fullscreen'),
                   ),
               ],
             ),
           ),
+          // 画像プレビュー
           Expanded(
             child: Center(
-              child: Container(
-                margin: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(77),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
+              child: Card(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
                 ),
+                color: colorScheme.surfaceContainerHighest,
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: previewState.base64Image != null
@@ -138,21 +147,21 @@ class PreviewPane extends ConsumerWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.image_outlined,
-                                size: 64,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                              PhosphorIcon(
+                                PhosphorIcons.imageSquare(),
+                                size: 56,
+                                color: colorScheme.onSurfaceVariant.withAlpha(
+                                  80,
+                                ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                               Text(
-                                '画像が生成されていません',
+                                L.of(ref.read(localeProvider), 'no_image'),
                                 style: Theme.of(context).textTheme.bodyLarge
                                     ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
+                                      color: colorScheme.onSurfaceVariant
+                                          .withAlpha(120),
+                                      fontWeight: FontWeight.w300,
                                     ),
                               ),
                             ],
@@ -162,27 +171,28 @@ class PreviewPane extends ConsumerWidget {
               ),
             ),
           ),
+          // エラー表示
           if (previewState.errorMessage != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Card(
-                color: Theme.of(context).colorScheme.errorContainer,
+                color: colorScheme.errorContainer.withAlpha(60),
                 child: Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      PhosphorIcon(
+                        PhosphorIcons.warning(),
+                        color: colorScheme.error,
+                        size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'エラー: ${previewState.errorMessage}',
+                          '${L.of(ref.read(localeProvider), 'error')}: ${previewState.errorMessage}',
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onErrorContainer,
+                            color: colorScheme.onErrorContainer,
+                            fontSize: 13,
                           ),
                         ),
                       ),
@@ -191,11 +201,9 @@ class PreviewPane extends ConsumerWidget {
                 ),
               ),
             ),
+          // プログレスバー
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Column(
               children: [
                 if (previewState.status == GenerationStatus.generating)
@@ -207,8 +215,9 @@ class PreviewPane extends ConsumerWidget {
               ],
             ),
           ),
+          // 生成ボタン
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: FilledButton.icon(
               onPressed: previewState.status == GenerationStatus.generating
                   ? null
@@ -217,27 +226,25 @@ class PreviewPane extends ConsumerWidget {
                     },
               icon: previewState.status == GenerationStatus.generating
                   ? const SizedBox(
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: Colors.white,
                       ),
                     )
-                  : const Icon(Icons.auto_awesome),
+                  : PhosphorIcon(PhosphorIcons.sparkle(), size: 20),
               label: Text(
                 previewState.status == GenerationStatus.generating
-                    ? '生成中...'
-                    : '画像を生成',
+                    ? '${L.of(ref.read(localeProvider), 'generate')}...'
+                    : L.of(ref.read(localeProvider), 'generate'),
               ),
               style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                minimumSize: const Size(double.infinity, 52),
               ),
             ),
           ),
+          // PNG Info
           const Expanded(
             flex: 2,
             child: SingleChildScrollView(child: PngInfoPane()),

@@ -45,11 +45,11 @@ dependencies:
   shared_preferences: ^2.5.4
   file_picker: ^10.3.10
   desktop_drop: ^0.7.0
-  shadcn_ui: ^0.46.1
-  flex_color_scheme: ^8.4.0
   multi_split_view: ^3.6.1
   native_context_menu: ^0.2.2+5
   google_fonts: ^8.0.1
+  cross_file: ^0.3.5+2
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +61,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_oss_licenses: ^3.0.12
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

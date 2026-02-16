@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../core/l10n.dart';
 import '../../prompt/services/prompt_parser.dart';
 import '../../prompt/store/prompt_store.dart';
 import '../../settings/models/sd_model.dart';
@@ -19,56 +21,110 @@ class PngInfoPane extends ConsumerWidget {
     final state = ref.watch(previewStoreProvider);
     final effectiveMetadata = metadata ?? state.metadata;
     final effectiveRawParameters = rawParameters ?? state.rawParameters;
+    final colorScheme = Theme.of(context).colorScheme;
+    final locale = ref.watch(localeProvider);
 
     if (effectiveMetadata == null) {
-      return const Center(child: Text("No PNG Info available"));
+      return Center(
+        child: Text(
+          "No PNG Info available",
+          style: TextStyle(
+            color: colorScheme.onSurfaceVariant.withAlpha(120),
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+      );
     }
 
     return Card(
-      margin: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.all(16),
+      elevation: 0,
+      color: colorScheme.surfaceContainerHigh,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'PNG Info',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Row(
+                  children: [
+                    PhosphorIcon(
+                      PhosphorIcons.info(),
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'PNG Info',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton.icon(
+                FilledButton.tonalIcon(
                   onPressed: () {
                     _sendToTxt2Img(ref, effectiveMetadata);
                   },
-                  icon: const Icon(Icons.copy_all),
-                  label: const Text('Send to Txt2Img'),
+                  icon: PhosphorIcon(PhosphorIcons.arrowSquareOut(), size: 16),
+                  label: Text(L.of(locale, 'send_to_txt2img')),
+                  style: FilledButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
                 ),
               ],
             ),
-            const Divider(),
+            const SizedBox(height: 16),
+            Divider(color: colorScheme.outlineVariant.withAlpha(40)),
+            const SizedBox(height: 12),
             if (effectiveMetadata.containsKey('prompt')) ...[
-              const SizedBox(height: 8),
-              Text('Prompt', style: Theme.of(context).textTheme.labelMedium),
+              Text(
+                'Prompt',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 0.8,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
               SelectableText(
                 effectiveMetadata['prompt'] ?? '',
-                style: GoogleFonts.geistMono(),
+                style: GoogleFonts.geistMono(fontSize: 12),
               ),
             ],
             if (effectiveMetadata.containsKey('negative_prompt')) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               Text(
                 'Negative Prompt',
-                style: Theme.of(context).textTheme.labelMedium,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 0.8,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              const SizedBox(height: 6),
               SelectableText(
                 effectiveMetadata['negative_prompt'] ?? '',
-                style: GoogleFonts.geistMono(),
+                style: GoogleFonts.geistMono(fontSize: 12),
               ),
             ],
-            const SizedBox(height: 8),
-            Text('Settings', style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(height: 16),
+            Text(
+              'Settings',
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                letterSpacing: 0.8,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
             SelectableText(
               effectiveRawParameters
                       ?.split('\n')
@@ -77,7 +133,7 @@ class PngInfoPane extends ConsumerWidget {
                         orElse: () => '',
                       ) ??
                   '',
-              style: GoogleFonts.geistMono(),
+              style: GoogleFonts.geistMono(fontSize: 12),
             ),
           ],
         ),
@@ -86,17 +142,14 @@ class PngInfoPane extends ConsumerWidget {
   }
 
   void _sendToTxt2Img(WidgetRef ref, Map<String, dynamic> metadata) {
-    // 1. Update Prompt
     if (metadata.containsKey('prompt')) {
       final promptText = metadata['prompt'] as String;
       ref.read(promptProvider.notifier).state = promptText;
 
-      // Also update tags (important for UI sync)
       final tags = PromptParser.parse(promptText);
       ref.read(promptTagsProvider.notifier).setTags(tags);
     }
 
-    // 2. Update Negative Prompt
     if (metadata.containsKey('negative_prompt')) {
       final negPromptText = metadata['negative_prompt'] as String;
       ref.read(negativePromptProvider.notifier).state = negPromptText;
@@ -105,10 +158,8 @@ class PngInfoPane extends ConsumerWidget {
       ref.read(negativePromptTagsProvider.notifier).setTags(negTags);
     }
 
-    // 3. Update Settings
     ref.read(generationSettingsProvider.notifier).updateFromMetadata(metadata);
 
-    // 4. Update Model if available (async)
     if (metadata.containsKey('model') || metadata.containsKey('model_hash')) {
       final modelName = metadata['model'] as String?;
       final modelHash = metadata['model_hash'] as String?;
@@ -143,8 +194,8 @@ class PngInfoPane extends ConsumerWidget {
       });
     }
 
-    ScaffoldMessenger.of(
-      ref.context,
-    ).showSnackBar(const SnackBar(content: Text('Parameters sent to Txt2Img')));
+    ScaffoldMessenger.of(ref.context).showSnackBar(
+      SnackBar(content: Text(L.of(ref.read(localeProvider), 'params_sent'))),
+    );
   }
 }

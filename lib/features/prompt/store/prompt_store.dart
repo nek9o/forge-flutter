@@ -34,6 +34,14 @@ class PromptTagsNotifier extends StateNotifier<List<PromptTag>> {
     }
   }
 
+  void updateTag(int index, PromptTag newTag) {
+    if (index >= 0 && index < state.length) {
+      final newState = List<PromptTag>.from(state);
+      newState[index] = newTag;
+      state = newState;
+    }
+  }
+
   void reorderTags(int oldIndex, int newIndex) {
     if (oldIndex < newIndex) {
       newIndex -= 1;

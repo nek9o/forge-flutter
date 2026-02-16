@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../core/l10n.dart';
 import '../../prompt/models/prompt_tag.dart';
 import '../../prompt/store/prompt_store.dart';
 import '../models/lora.dart';
@@ -26,21 +28,40 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
   @override
   Widget build(BuildContext context) {
     final lorasAsyncValue = ref.watch(lorasProvider);
+    final locale = ref.watch(localeProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
-      title: const Text('LoRA ブラウザ'),
+      title: Row(
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.swatches(),
+            size: 22,
+            color: colorScheme.primary,
+          ),
+          const SizedBox(width: 10),
+          Text(
+            'LoRA ${L.of(locale, 'lora_browser').replaceFirst('LoRA ', '')}',
+            style: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0.5),
+          ),
+        ],
+      ),
       content: SizedBox(
         width: 600,
         height: 500,
         child: Column(
           children: [
+            // M3 SearchBar スタイル
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'LoRAを検索...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                hintText: L.of(locale, 'search_lora'),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: PhosphorIcon(
+                    PhosphorIcons.magnifyingGlass(),
+                    size: 20,
+                  ),
                 ),
               ),
               onChanged: (value) {
@@ -49,7 +70,7 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Expanded(
               child: lorasAsyncValue.when(
                 data: (loras) {
@@ -60,7 +81,28 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
                   }).toList();
 
                   if (filteredLoras.isEmpty) {
-                    return const Center(child: Text('LoRAが見つかりません'));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          PhosphorIcon(
+                            PhosphorIcons.magnifyingGlass(),
+                            size: 40,
+                            color: colorScheme.onSurfaceVariant.withAlpha(80),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            L.of(locale, 'no_lora'),
+                            style: TextStyle(
+                              color: colorScheme.onSurfaceVariant.withAlpha(
+                                120,
+                              ),
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
                   return GridView.builder(
@@ -79,7 +121,8 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Center(child: Text('エラー: $err')),
+                error: (err, stack) =>
+                    Center(child: Text('${L.of(locale, 'error')}: $err')),
               ),
             ),
           ],
@@ -88,42 +131,43 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('閉じる'),
+          child: Text(L.of(locale, 'close')),
         ),
       ],
     );
   }
 
   Widget _buildLoraCard(BuildContext context, Lora lora) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Theme.of(context).dividerColor),
-      ),
+      color: colorScheme.surfaceContainerHigh,
       child: InkWell(
         onTap: () {
           _addLoraToPrompt(lora);
           Navigator.of(context).pop();
         },
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 lora.name,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               if (lora.alias != null)
                 Text(
-                  'エイリアス: ${lora.alias}',
+                  '${L.of(ref.read(localeProvider), 'alias')}: ${lora.alias}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant.withAlpha(160),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -143,7 +187,6 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
     );
     ref.read(promptTagsProvider.notifier).addTag(newTag);
 
-    // Sync to prompt string
     final tags = ref.read(promptTagsProvider);
     final text = tags.map((t) => t.formatted).join(', ');
     ref.read(promptProvider.notifier).state = text;

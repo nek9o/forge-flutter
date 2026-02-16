@@ -45,3 +45,7 @@ app.*.map.json
 /android/app/release
 
 font
+
+analysis*
+analyze*
+build*

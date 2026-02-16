@@ -66,4 +66,4 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 - プルリクエストによる改善
 - ドキュメントや翻訳の修正
 
-など、あらゆる貢献を歓迎します。詳細は [CONTRIBUTING.md](CONTRIBUTING.md) をご確認ください。
+など、あらゆる貢献を歓迎します。詳細は [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md) をご確認ください。

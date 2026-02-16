@@ -69,9 +69,11 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // テキスト入力エリア
         Card(
+          margin: EdgeInsets.zero,
           elevation: 0,
           color: colorScheme.surfaceContainerHighest.withAlpha(100),
           shape: RoundedRectangleBorder(
@@ -121,7 +123,7 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
               child: tags.isEmpty
                   ? Center(
                       child: Text(
-                        'チップがありません。上のフィールドにネガティブプロンプトを入力してください。',
+                        L.of(locale, 'negative_prompt_no_chips'),
                         style: TextStyle(
                           color: colorScheme.onSurfaceVariant.withAlpha(120),
                           fontWeight: FontWeight.w300,
@@ -267,15 +269,17 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
           children: [
             TextField(
               controller: textController,
-              decoration: const InputDecoration(labelText: 'ネガティブプロンプト'),
+              decoration: InputDecoration(
+                labelText: L.of(locale, 'negative_prompt'),
+              ),
               style: GoogleFonts.geistMono(),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: weightController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Weight',
-                helperText: '0.1 ~ 5.0',
+                helperText: L.of(locale, 'weight_range_helper'),
               ),
               keyboardType: TextInputType.number,
               style: GoogleFonts.geistMono(),

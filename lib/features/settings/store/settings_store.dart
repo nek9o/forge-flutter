@@ -64,6 +64,18 @@ class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
     state = state.copyWith(saveImages: saveImages);
   }
 
+  void updateBatchSize(int batchSize) {
+    state = state.copyWith(batchSize: batchSize);
+  }
+
+  void updateBatchCount(int batchCount) {
+    state = state.copyWith(batchCount: batchCount);
+  }
+
+  void updateSdMode(String sdMode) {
+    state = state.copyWith(sdMode: sdMode);
+  }
+
   void updateFromMetadata(Map<String, dynamic> metadata) {
     var newState = state;
     if (metadata.containsKey('width')) {
@@ -89,6 +101,15 @@ class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
     }
     if (metadata.containsKey('save_images')) {
       newState = newState.copyWith(saveImages: metadata['save_images']);
+    }
+    if (metadata.containsKey('batch_size')) {
+      newState = newState.copyWith(batchSize: metadata['batch_size']);
+    }
+    if (metadata.containsKey('batch_count')) {
+      newState = newState.copyWith(batchCount: metadata['batch_count']);
+    }
+    if (metadata.containsKey('sd_mode')) {
+      newState = newState.copyWith(sdMode: metadata['sd_mode']);
     }
     // Add other fields as needed
     state = newState;
@@ -119,6 +140,8 @@ class SettingsStore extends StateNotifier<AsyncValue<void>> {
     }
   }
 }
+
+final accordionExpandedProvider = StateProvider<Set<int>>((ref) => {0, 1});
 
 final settingsStoreProvider =
     StateNotifierProvider<SettingsStore, AsyncValue<void>>((ref) {

@@ -41,8 +41,11 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
           ),
           const SizedBox(width: 10),
           Text(
-            'LoRA ${L.of(locale, 'lora_browser').replaceFirst('LoRA ', '')}',
-            style: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0.5),
+            L.of(locale, 'lora_browser'),
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+            ),
           ),
         ],
       ),

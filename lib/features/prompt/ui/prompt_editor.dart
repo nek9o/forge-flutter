@@ -2,10 +2,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../settings/ui/lora_browser.dart';
 import '../models/prompt_tag.dart';
 import '../services/prompt_parser.dart';
 import '../store/prompt_store.dart';
@@ -27,8 +29,6 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
     super.initState();
     _textController = TextEditingController();
   }
-
-  bool _showHint = false;
 
   @override
   void dispose() {
@@ -69,38 +69,54 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
     final tags = ref.watch(promptTagsProvider);
     final locale = ref.watch(localeProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final showHint = ref.watch(promptHintVisibleProvider);
 
     return Stack(
       children: [
         Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ヘッダー（ヒントボタン）
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: PhosphorIcon(
-                    _showHint
-                        ? PhosphorIcons.lightbulbFilament(
-                            PhosphorIconsStyle.fill,
-                          )
-                        : PhosphorIcons.lightbulbFilament(),
-                    color: _showHint
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
-                    size: 20,
+            // ヘッダー（ボタン群）
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  FButton(
+                    onPress: () => showDialog(
+                      context: context,
+                      builder: (context) => const LoraBrowser(),
+                    ),
+                    variant: FButtonVariant.ghost,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PhosphorIcon(PhosphorIcons.swatches(), size: 18),
+                        const SizedBox(width: 8),
+                        Text(L.of(locale, 'lora_browser')),
+                      ],
+                    ),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _showHint = !_showHint;
-                    });
-                  },
-                  tooltip: L.of(locale, 'show_hints'),
-                ),
-              ],
+                  const Spacer(),
+                  _buildActionButton(
+                    context,
+                    tooltip: L.of(locale, 'clear_prompt'),
+                    onPressed: () {
+                      ref.read(promptTagsProvider.notifier).setTags([]);
+                      ref.read(promptProvider.notifier).state = '';
+                    },
+                    icon: PhosphorIcon(
+                      PhosphorIcons.trash(),
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+              ),
             ),
             // テキスト入力エリア
             Card(
+              margin: EdgeInsets.zero,
               elevation: 0,
               color: colorScheme.surfaceContainerHighest.withAlpha(100),
               shape: RoundedRectangleBorder(
@@ -158,7 +174,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                   child: tags.isEmpty
                       ? Center(
                           child: Text(
-                            'チップがありません。上のフィールドにプロンプトを入力してください。',
+                            L.of(locale, 'prompt_no_chips'),
                             style: TextStyle(
                               color: colorScheme.onSurfaceVariant.withAlpha(
                                 120,
@@ -194,7 +210,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
           ],
         ),
         // ヒントオーバーレイ
-        if (_showHint)
+        if (showHint)
           Positioned(top: 48, right: 0, width: 300, child: const HintCard()),
       ],
     );
@@ -335,7 +351,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
               controller: weightController,
               decoration: InputDecoration(
                 labelText: L.of(locale, 'weight'),
-                helperText: '0.1 ~ 5.0',
+                helperText: L.of(locale, 'weight_range_helper'),
               ),
               keyboardType: TextInputType.number,
               style: GoogleFonts.geistMono(),
@@ -369,6 +385,26 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
             child: Text(L.of(locale, 'save')),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    BuildContext context, {
+    required String tooltip,
+    required VoidCallback onPressed,
+    required Widget icon,
+  }) {
+    return FTooltip(
+      tipBuilder: (context, controller) => Text(tooltip),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
+        ),
       ),
     );
   }

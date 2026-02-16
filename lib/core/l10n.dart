@@ -27,6 +27,7 @@ class L {
 
     // 設定ペイン
     'settings': '設定',
+    'detailed_settings': '詳細設定',
     'api_settings': 'API 設定',
     'api_url': 'API URL',
     'model_sampling': 'モデル & サンプリング',
@@ -41,6 +42,7 @@ class L {
     'width': '幅',
     'height': '高さ',
     'batch_size': 'バッチサイズ',
+    'batch_count': 'バッチ回数',
     'seed': 'シード',
     'seed_hint': '-1 (ランダム)',
     'extensions_others': '拡張機能 & その他',
@@ -59,6 +61,16 @@ class L {
     'save': '保存',
     'show_hints': 'ヒントを表示',
     'weight': '重み',
+
+    'clear_prompt': 'プロンプトをクリア',
+    'clear': 'クリア',
+    'select_all': '全て選択',
+    'hint': 'ヒント',
+    'prompt_no_chips': 'チップがありません。上のフィールドにプロンプトを入力してください。',
+    'negative_prompt_no_chips': 'チップがありません。上のフィールドにネガティブプロンプトを入力してください。',
+    'weight_range_helper': '0.1 ~ 5.0',
+    'png_info_tab': 'PNG Info (D&D)',
+    'detailed_settings_tooltip': '詳細設定',
 
     // プレビュー
     'generation_preview': '生成プレビュー',
@@ -117,6 +129,7 @@ class L {
 
     // Settings pane
     'settings': 'Settings',
+    'detailed_settings': 'Detailed Settings',
     'api_settings': 'API Settings',
     'api_url': 'API URL',
     'model_sampling': 'Model & Sampling',
@@ -131,6 +144,7 @@ class L {
     'width': 'Width',
     'height': 'Height',
     'batch_size': 'Batch Size',
+    'batch_count': 'Batch Count',
     'seed': 'Seed',
     'seed_hint': '-1 (Random)',
     'extensions_others': 'Extensions & Others',
@@ -150,6 +164,16 @@ class L {
     'save': 'Save',
     'show_hints': 'Show hints',
     'weight': 'Weight',
+    'clear_prompt': 'Clear Prompt',
+    'clear': 'Clear',
+    'select_all': 'Select All',
+    'hint': 'Hint',
+    'prompt_no_chips': 'No chips. Enter prompts in the field above.',
+    'negative_prompt_no_chips':
+        'No chips. Enter negative prompts in the field above.',
+    'weight_range_helper': '0.1 ~ 5.0',
+    'png_info_tab': 'PNG Info (D&D)',
+    'detailed_settings_tooltip': 'Detailed Settings',
 
     // Preview
     'generation_preview': 'Generation Preview',

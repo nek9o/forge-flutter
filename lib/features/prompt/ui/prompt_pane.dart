@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../store/prompt_store.dart';
 import 'negative_prompt_editor.dart';
 import 'prompt_editor.dart';
 
@@ -18,8 +20,8 @@ class PromptPane extends ConsumerWidget {
     return ncm.ContextMenuRegion(
       onItemSelected: (item) {},
       menuItems: [
-        ncm.MenuItem(title: 'Clear'),
-        ncm.MenuItem(title: 'Select All'),
+        ncm.MenuItem(title: L.of(locale, 'clear')),
+        ncm.MenuItem(title: L.of(locale, 'select_all')),
       ],
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -48,6 +50,26 @@ class PromptPane extends ConsumerWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
+                const Spacer(),
+                _buildHeaderButton(
+                  context,
+                  tooltip: L.of(locale, 'hint'),
+                  onPressed: () {
+                    final current = ref.read(promptHintVisibleProvider);
+                    ref.read(promptHintVisibleProvider.notifier).state =
+                        !current;
+                  },
+                  icon: PhosphorIcon(
+                    ref.watch(promptHintVisibleProvider)
+                        ? PhosphorIcons.lightbulbFilament(
+                            PhosphorIconsStyle.fill,
+                          )
+                        : PhosphorIcons.lightbulbFilament(),
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 4),
               ],
             ),
             const SizedBox(height: 16),
@@ -58,7 +80,7 @@ class PromptPane extends ConsumerWidget {
               children: [
                 PhosphorIcon(
                   PhosphorIcons.prohibit(),
-                  size: 18,
+                  size: 20,
                   color: colorScheme.error.withAlpha(180),
                 ),
                 const SizedBox(width: 10),
@@ -69,11 +91,46 @@ class PromptPane extends ConsumerWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
+                const Spacer(),
+                _buildHeaderButton(
+                  context,
+                  tooltip: L.of(locale, 'clear'),
+                  onPressed: () {
+                    ref.read(negativePromptTagsProvider.notifier).setTags([]);
+                    ref.read(negativePromptProvider.notifier).state = '';
+                  },
+                  icon: PhosphorIcon(
+                    PhosphorIcons.trash(),
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 4),
               ],
             ),
             const SizedBox(height: 16),
             const Expanded(flex: 2, child: NegativePromptEditor()),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderButton(
+    BuildContext context, {
+    required String tooltip,
+    required VoidCallback onPressed,
+    required Widget icon,
+  }) {
+    return FTooltip(
+      tipBuilder: (context, controller) => Text(tooltip),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
         ),
       ),
     );

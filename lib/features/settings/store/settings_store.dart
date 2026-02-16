@@ -66,22 +66,30 @@ class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
 
   void updateFromMetadata(Map<String, dynamic> metadata) {
     var newState = state;
-    if (metadata.containsKey('width'))
+    if (metadata.containsKey('width')) {
       newState = newState.copyWith(width: metadata['width']);
-    if (metadata.containsKey('height'))
+    }
+    if (metadata.containsKey('height')) {
       newState = newState.copyWith(height: metadata['height']);
-    if (metadata.containsKey('steps'))
+    }
+    if (metadata.containsKey('steps')) {
       newState = newState.copyWith(steps: metadata['steps']);
-    if (metadata.containsKey('cfg_scale'))
+    }
+    if (metadata.containsKey('cfg_scale')) {
       newState = newState.copyWith(cfgScale: metadata['cfg_scale']);
-    if (metadata.containsKey('seed'))
+    }
+    if (metadata.containsKey('seed')) {
       newState = newState.copyWith(seed: metadata['seed']);
-    if (metadata.containsKey('sampler'))
+    }
+    if (metadata.containsKey('sampler')) {
       newState = newState.copyWith(samplerName: metadata['sampler']);
-    if (metadata.containsKey('scheduler'))
+    }
+    if (metadata.containsKey('scheduler')) {
       newState = newState.copyWith(scheduler: metadata['scheduler']);
-    if (metadata.containsKey('save_images'))
+    }
+    if (metadata.containsKey('save_images')) {
       newState = newState.copyWith(saveImages: metadata['save_images']);
+    }
     // Add other fields as needed
     state = newState;
   }

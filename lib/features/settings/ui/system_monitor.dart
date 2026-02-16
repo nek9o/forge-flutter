@@ -34,6 +34,10 @@ class _SystemMonitorState extends State<SystemMonitor> {
   bool _gpuAvailable = false;
   bool _initialized = false;
 
+  // Linux CPU計算用
+  int _prevTotal = 0;
+  int _prevIdle = 0;
+
   @override
   void initState() {
     super.initState();
@@ -58,23 +62,43 @@ class _SystemMonitorState extends State<SystemMonitor> {
 
   Future<void> _fetchCpu() async {
     try {
-      final result = await Process.run('wmic', [
-        'cpu',
-        'get',
-        'loadpercentage',
-      ], runInShell: true);
-      final output = result.stdout.toString().trim();
-      // 出力例: "LoadPercentage\n42"
-      final lines = output
-          .split('\n')
-          .map((l) => l.trim())
-          .where((l) => l.isNotEmpty);
-      for (final line in lines) {
-        final value = double.tryParse(line);
+      if (Platform.isWindows) {
+        final result = await Process.run('powershell', [
+          '-NoProfile',
+          '-Command',
+          'Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average | Select-Object -ExpandProperty Average',
+        ], runInShell: true);
+        final output = result.stdout.toString().trim();
+        final value = double.tryParse(output);
         if (value != null) {
           _cpuPercent = value;
           _addSample(_cpuHistory, value);
-          break;
+        }
+      } else if (Platform.isLinux) {
+        final lines = await File('/proc/stat').readAsLines();
+        // 1行目: "cpu  2255 34 2290 22625563 6290 127 456"
+        final parts = lines.first
+            .split(RegExp(r'\s+'))
+            .where((s) => s.isNotEmpty)
+            .toList();
+        if (parts.length >= 5 && parts[0] == 'cpu') {
+          final user = int.parse(parts[1]);
+          final nice = int.parse(parts[2]);
+          final system = int.parse(parts[3]);
+          final idle = int.parse(parts[4]);
+
+          final total = user + nice + system + idle;
+          final totalDelta = total - _prevTotal;
+          final idleDelta = idle - _prevIdle;
+
+          if (totalDelta > 0) {
+            final usage = (totalDelta - idleDelta) / totalDelta * 100;
+            _cpuPercent = usage;
+            _addSample(_cpuHistory, _cpuPercent);
+          }
+
+          _prevTotal = total;
+          _prevIdle = idle;
         }
       }
     } catch (_) {
@@ -84,29 +108,49 @@ class _SystemMonitorState extends State<SystemMonitor> {
 
   Future<void> _fetchMemory() async {
     try {
-      final result = await Process.run('wmic', [
-        'OS',
-        'get',
-        'FreePhysicalMemory,TotalVisibleMemorySize',
-      ], runInShell: true);
-      final output = result.stdout.toString().trim();
-      final lines = output
-          .split('\n')
-          .map((l) => l.trim())
-          .where((l) => l.isNotEmpty);
-
-      for (final line in lines) {
-        final parts = line.split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
-        if (parts.length >= 2) {
-          final free = double.tryParse(parts.first);
-          final total = double.tryParse(parts.last);
+      if (Platform.isWindows) {
+        final result = await Process.run('powershell', [
+          '-NoProfile',
+          '-Command',
+          "Get-CimInstance Win32_OperatingSystem | ForEach-Object { \$_.FreePhysicalMemory.ToString() + ',' + \$_.TotalVisibleMemorySize.ToString() }",
+        ], runInShell: true);
+        final output = result.stdout.toString().trim();
+        // 出力例: "1234567,16777216"
+        final parts = output.split(',');
+        if (parts.length == 2) {
+          final free = double.tryParse(parts[0]);
+          final total = double.tryParse(parts[1]);
           if (free != null && total != null && total > 0) {
             _memoryTotalGB = total / 1024 / 1024; // KB→GB
             _memoryUsedGB = (total - free) / 1024 / 1024;
             _memoryPercent = ((total - free) / total * 100);
             _addSample(_memoryHistory, _memoryPercent);
-            break;
           }
+        }
+      } else if (Platform.isLinux) {
+        final lines = await File('/proc/meminfo').readAsLines();
+        double? total;
+        double? available;
+
+        for (final line in lines) {
+          if (line.startsWith('MemTotal:')) {
+            final parts = line.split(RegExp(r'\s+'));
+            if (parts.length >= 2) {
+              total = double.tryParse(parts[1]);
+            }
+          } else if (line.startsWith('MemAvailable:')) {
+            final parts = line.split(RegExp(r'\s+'));
+            if (parts.length >= 2) {
+              available = double.tryParse(parts[1]);
+            }
+          }
+        }
+
+        if (total != null && available != null && total > 0) {
+          _memoryTotalGB = total / 1024 / 1024; // KB→GB
+          _memoryUsedGB = (total - available) / 1024 / 1024;
+          _memoryPercent = ((total - available) / total * 100);
+          _addSample(_memoryHistory, _memoryPercent);
         }
       }
     } catch (_) {

@@ -146,7 +146,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           data: (models) {
                             return DropdownButtonFormField<String>(
                               isExpanded: true,
-                              value: selectedModel,
+                              initialValue: selectedModel,
                               hint: Text(L.of(locale, 'select_model')),
                               items: models.map((model) {
                                 return DropdownMenuItem<String>(
@@ -179,7 +179,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           data: (samplers) {
                             return DropdownButtonFormField<String>(
                               isExpanded: true,
-                              value: settings.samplerName,
+                              initialValue: settings.samplerName,
                               items: samplers.map((sampler) {
                                 return DropdownMenuItem<String>(
                                   value: sampler.name,
@@ -208,7 +208,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           data: (schedulers) {
                             return DropdownButtonFormField<String?>(
                               isExpanded: true,
-                              value: settings.scheduler,
+                              initialValue: settings.scheduler,
                               hint: Text(L.of(locale, 'auto')),
                               items: [
                                 DropdownMenuItem<String?>(

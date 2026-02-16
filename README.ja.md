@@ -5,13 +5,13 @@
 
 **[English README](README.md)**
 
-Forge Flutter Client は、[SD-WebUI-Forge](https://github.com/lllyasviel/stable-diffusion-webui-forge) 用の超軽量デスクトップアプリケーションです。画像生成時のメモリ消費を極限まで抑えることをコンセプトに開発されています。
+Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-webui-forge-classic) 用の超軽量デスクトップアプリケーションです。画像生成時のメモリ消費を極限まで抑えることをコンセプトに開発されています。
 
 ## 1. 基本情報 (Core Metadata)
 
 - **アプリ名:** Forge Flutter Client
 - **バージョン:** v0.1.0-alpha
-- **コンセプト:** SD-WebUI-Forge用の超軽量デスクトップアプリ（メモリ消費の極小化）
+- **コンセプト:** Forge Classic Neo用の超軽量デスクトップアプリ（メモリ消費の極小化）
 - **主要な成果:** リリースビルドでのメモリ使用量 起動時約55MB / 使用時約80MB（ブラウザ版は起動直後で約300MB）
 
 ## 2. 技術スタック (Technical Stack)

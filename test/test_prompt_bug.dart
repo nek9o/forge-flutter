@@ -1,4 +1,4 @@
-import 'package:flutter_forge/features/prompt/models/prompt_tag.dart';
+import 'package:forge_flutter_client/features/prompt/models/prompt_tag.dart';
 
 void main() {
   // Case 1: Simple tag

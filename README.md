@@ -1,17 +1,48 @@
-# flutter_forge
+# Forge Flutter Client
 
-A new Flutter project.
+[![Version](https://img.shields.io/badge/version-v0.1.0--alpha-orange)](https://github.com/fal-114514/forge-flutter)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-## Getting Started
+**[日本語版 README はこちら](README.ja.md)**
 
-This project is a starting point for a Flutter application.
+Forge Flutter Client is an ultra-lightweight desktop application for [SD-WebUI-Forge](https://github.com/lllyasviel/stable-diffusion-webui-forge), designed to minimize memory consumption during image generation.
 
-A few resources to get you started if this is your first Flutter project:
+## 1. Core Metadata
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- **App Name:** Forge Flutter Client
+- **Version:** v0.1.0-alpha
+- **Concept:** An ultra-lightweight desktop app for SD-WebUI-Forge (minimizing memory usage)
+- **Key Achievement:** ~55 MB memory usage in release build (approx. 1/8 of the browser-based version)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 2. Technical Stack
+
+- **Framework:** Flutter (Windows Native)
+- **UI Design:** Material 3 Expressive
+- **Fonts:**
+  - **Main UI:** IBM Plex Sans JP (balancing readability and modern aesthetics)
+  - **Prompt Display:** Geist Mono (monospaced font for clear input visualization)
+- **License:** MIT License
+  - Note: Dependencies include `dbus` (MPL-2.0), but the application itself is released under the MIT License.
+
+## 3. Key Features
+
+- **Lightweight:** Eliminates the need for a browser (Edge/Chrome), minimizing VRAM and RAM contention.
+- **Chip-based Prompt Editor:** Manage prompts visually as tags with intuitive weight adjustment.
+- **PNG Info:** Drag & drop images to parse prompt metadata and apply it directly to generation settings.
+- **Portable:** No installation required. Simply extract and run the EXE.
+
+## 4. Motivation
+
+Existing WebUI solutions (Gradio-based) are feature-rich, but the browser itself consumes significant memory, putting strain on low- to mid-spec PCs during image generation. This project was born from the desire for a dedicated, snappy, and well-designed tool that stays out of the way.
+
+## 5. Contribution
+
+This project is currently in alpha. There are unimplemented features and known bugs.
+
+Contributions are very welcome, including:
+
+- Bug reports and feature requests via Issues
+- Pull requests for improvements
+- Corrections to Japanese/English wording
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.

@@ -52,6 +52,13 @@ class L {
     'error': 'エラー',
     'loading': '読み込み中...',
 
+    'api_connection_error_title': 'APIに接続できません',
+    'api_connection_error_body': 'APIサーバーが起動しているか確認してください。',
+    'api_connection_error_body2': '起動している場合は、API URLが正しいか確認してください。',
+    'retry': '再試行',
+    'reconnect': '再接続',
+    'reconnecting': '再接続中...',
+
     // プロンプト
     'prompt': 'プロンプト',
     'negative_prompt': 'ネガティブプロンプト',
@@ -155,6 +162,14 @@ class L {
     'browse_lora': 'Browse LoRA',
     'error': 'Error',
     'loading': 'Loading...',
+
+    'api_connection_error_title': 'Cannot connect to the API',
+    'api_connection_error_body': 'Please make sure the API server is running.',
+    'api_connection_error_body2':
+        'If it is running, please check that the API URL is correct.',
+    'retry': 'Retry',
+    'reconnect': 'Reconnect',
+    'reconnecting': 'Reconnecting...',
 
     // Prompt
     'prompt': 'Prompt',

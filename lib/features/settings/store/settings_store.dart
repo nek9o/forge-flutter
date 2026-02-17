@@ -146,7 +146,41 @@ class SettingsStore extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> reconnect() async {
+    ref.read(isReconnectingProvider.notifier).state = true;
+
+    // プロバイダーの無効化
+    ref.invalidate(sdModelsProvider);
+    ref.invalidate(samplersProvider);
+    ref.invalidate(schedulersProvider);
+    ref.invalidate(lorasProvider);
+
+    final startTime = DateTime.now();
+
+    // 接続完了を待機
+    try {
+      await Future.wait([
+        ref.read(sdModelsProvider.future),
+        ref.read(samplersProvider.future),
+        ref.read(schedulersProvider.future),
+        ref.read(lorasProvider.future),
+      ]).timeout(const Duration(seconds: 10));
+
+      // 成功時は即座に終了（isReconnecting = false へ）
+    } catch (_) {
+      // 失敗時は最低でも1.5秒待機するように調整
+      final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+      if (elapsed < 1500) {
+        await Future.delayed(Duration(milliseconds: 1500 - elapsed));
+      }
+    } finally {
+      ref.read(isReconnectingProvider.notifier).state = false;
+    }
+  }
 }
+
+final isReconnectingProvider = StateProvider<bool>((ref) => false);
 
 final accordionExpandedProvider = StateProvider<Set<int>>((ref) => {0, 1});
 

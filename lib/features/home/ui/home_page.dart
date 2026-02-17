@@ -128,19 +128,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             },
                           ),
                           const SizedBox(height: 8),
-                          // 再接続ボタン
-                          _buildToolbarButton(
-                            context,
-                            icon: PhosphorIcons.arrowClockwise(),
-                            isActive: false,
-                            tooltip: L.of(locale, 'reconnect'),
-                            onPressed: () {
-                              ref
-                                  .read(settingsStoreProvider.notifier)
-                                  .reconnect();
-                            },
-                          ),
-                          const SizedBox(height: 8),
+
                           // 詳細設定ボタン
                           _buildToolbarButton(
                             context,
@@ -187,6 +175,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   builder: (context) => const OssLicensePage(),
                                 ),
                               );
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          // 再接続ボタン
+                          _buildToolbarButton(
+                            context,
+                            icon: PhosphorIcons.arrowClockwise(),
+                            isActive: false,
+                            tooltip: L.of(locale, 'reconnect'),
+                            onPressed: () {
+                              ref
+                                  .read(settingsStoreProvider.notifier)
+                                  .reconnect();
                             },
                           ),
                           const SizedBox(height: 16),

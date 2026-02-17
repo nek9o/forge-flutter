@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../preview/store/preview_store.dart';
 import '../models/generation_settings.dart';
 import '../store/settings_store.dart';
 import 'system_monitor.dart';
@@ -19,17 +20,20 @@ class SettingsPane extends ConsumerStatefulWidget {
 
 class _SettingsPaneState extends ConsumerState<SettingsPane> {
   late TextEditingController _seedController;
+  late FocusNode _seedFocusNode;
 
   @override
   void initState() {
     super.initState();
     final initialSeed = ref.read(generationSettingsProvider).seed;
     _seedController = TextEditingController(text: initialSeed.toString());
+    _seedFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _seedController.dispose();
+    _seedFocusNode.dispose();
     super.dispose();
   }
 
@@ -43,11 +47,13 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     final settings = ref.watch(generationSettingsProvider);
     final fTheme = FTheme.of(context);
 
-    // シード値の同期（ビルド中ではなく副作用として処理するのが望ましいが、簡易的にガードを入れる）
+    // シード値の同期
     if (_seedController.text != settings.seed.toString() &&
-        !FocusScope.of(context).hasFocus) {
+        !_seedFocusNode.hasFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _seedController.text != settings.seed.toString()) {
+        if (mounted &&
+            _seedController.text != settings.seed.toString() &&
+            !_seedFocusNode.hasFocus) {
           _seedController.text = settings.seed.toString();
         }
       });
@@ -249,6 +255,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                             children: [
                               Expanded(
                                 child: FTextField(
+                                  focusNode: _seedFocusNode,
                                   control: FTextFieldControl.managed(
                                     controller: _seedController,
                                     onChange: (value) {
@@ -275,7 +282,20 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                               const SizedBox(width: 4),
                               FButton.icon(
                                 onPress: () {
-                                  // Reuse logic can be implemented here
+                                  final metadata = ref
+                                      .read(previewStoreProvider)
+                                      .metadata;
+                                  if (metadata != null &&
+                                      metadata.containsKey('seed')) {
+                                    final seed = metadata['seed'];
+                                    if (seed is int) {
+                                      ref
+                                          .read(
+                                            generationSettingsProvider.notifier,
+                                          )
+                                          .updateSeed(seed);
+                                    }
+                                  }
                                 },
                                 child: PhosphorIcon(PhosphorIcons.recycle()),
                               ),

@@ -60,10 +60,42 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         border: Border(right: BorderSide(color: fTheme.colors.border)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // ヘッダー
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+            child: Row(
+              children: [
+                PhosphorIcon(
+                  PhosphorIcons.gear(),
+                  size: 20,
+                  color: fTheme.colors.primary,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  L.of(locale, 'settings'),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5,
+                    fontSize: 20,
+                    color: fTheme.colors.foreground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: fTheme.colors.border,
+            ),
+          ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -259,10 +291,17 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
           ),
           // システムモニター
           if (widget.showMonitor) ...[
-            FDivider(),
             Padding(
-              padding: const EdgeInsets.all(12),
-              child: const SystemMonitor(),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: fTheme.colors.border,
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: SystemMonitor(),
             ),
           ],
         ],

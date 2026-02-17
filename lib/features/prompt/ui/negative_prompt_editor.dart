@@ -8,7 +8,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
 import '../models/prompt_tag.dart';
-import '../services/prompt_parser.dart';
 import '../store/prompt_store.dart';
 
 class NegativePromptEditor extends ConsumerStatefulWidget {
@@ -34,15 +33,6 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
-  }
-
-  void _syncTextToTags() {
-    final text = _textController.text.trim();
-    if (text.isEmpty) return;
-
-    final tags = PromptParser.parse(text);
-    ref.read(negativePromptTagsProvider.notifier).setTags(tags);
-    _textController.clear();
   }
 
   void _syncTagsToText() {

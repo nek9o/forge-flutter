@@ -126,9 +126,14 @@ class PromptPane extends ConsumerWidget {
   }) {
     return FTooltip(
       tipBuilder: (context, controller) => Text(tooltip),
-      child: FTappable(
-        onPress: onPressed,
-        child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onPressed,
+          hoverColor: FTheme.of(context).colors.foreground.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
+        ),
       ),
     );
   }

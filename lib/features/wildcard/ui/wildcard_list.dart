@@ -127,8 +127,7 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                 FButton.icon(
                   onPress: _loadWildcards,
                   child: FTooltip(
-                    tipBuilder: (context, controller) =>
-                        const Text('Reload'),
+                    tipBuilder: (context, controller) => const Text('Reload'),
                     child: PhosphorIcon(
                       PhosphorIcons.arrowClockwise(),
                       size: 16,
@@ -158,7 +157,7 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                   final tag = _wildcards[index];
                   final isWildcard = tag.startsWith('__');
 
-                  return FTappable.animated(
+                  return FTappable(
                     onPress: () {
                       final currentTags = ref.read(promptTagsProvider);
                       final newTag = PromptParser.parse(tag).first;
@@ -177,8 +176,7 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                       child: Text(
                         tag,
                         style: TextStyle(
-                          fontStyle:
-                              isWildcard ? FontStyle.italic : null,
+                          fontStyle: isWildcard ? FontStyle.italic : null,
                           color: isWildcard
                               ? fTheme.colors.primary
                               : fTheme.colors.foreground,

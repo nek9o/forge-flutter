@@ -27,7 +27,7 @@ class PreviewPane extends ConsumerWidget {
             child: TabBar(
               tabs: [
                 Tab(text: L.of(locale, 'generation_preview')),
-                Tab(text: 'PNG Info (D&D)'),
+                Tab(text: L.of(locale, 'png_info_tab')),
               ],
             ),
           ),

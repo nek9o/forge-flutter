@@ -4,6 +4,7 @@ import '../models/prompt_tag.dart';
 
 final promptProvider = StateProvider<String>((ref) => "");
 final negativePromptProvider = StateProvider<String>((ref) => "");
+final promptHintVisibleProvider = StateProvider<bool>((ref) => false);
 
 // Notifier for handling tag operations
 class PromptTagsNotifier extends StateNotifier<List<PromptTag>> {

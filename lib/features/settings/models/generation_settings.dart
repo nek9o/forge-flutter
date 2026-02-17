@@ -7,6 +7,10 @@ class GenerationSettings {
   final int seed;
   final String? scheduler;
   final bool saveImages;
+  final int batchSize;
+  final int batchCount;
+  final String sdMode;
+  final bool uiDebugMode;
 
   GenerationSettings({
     this.samplerName = 'Euler a',
@@ -15,8 +19,12 @@ class GenerationSettings {
     this.steps = 20,
     this.cfgScale = 7.0,
     this.seed = -1,
-    this.scheduler,
+    this.scheduler = 'Automatic',
     this.saveImages = true,
+    this.batchSize = 1,
+    this.batchCount = 1,
+    this.sdMode = 'SD',
+    this.uiDebugMode = false,
   });
 
   GenerationSettings copyWith({
@@ -28,6 +36,10 @@ class GenerationSettings {
     int? seed,
     String? scheduler,
     bool? saveImages,
+    int? batchSize,
+    int? batchCount,
+    String? sdMode,
+    bool? uiDebugMode,
   }) {
     return GenerationSettings(
       samplerName: samplerName ?? this.samplerName,
@@ -38,6 +50,10 @@ class GenerationSettings {
       seed: seed ?? this.seed,
       scheduler: scheduler ?? this.scheduler,
       saveImages: saveImages ?? this.saveImages,
+      batchSize: batchSize ?? this.batchSize,
+      batchCount: batchCount ?? this.batchCount,
+      sdMode: sdMode ?? this.sdMode,
+      uiDebugMode: uiDebugMode ?? this.uiDebugMode,
     );
   }
 
@@ -51,6 +67,10 @@ class GenerationSettings {
       'seed': seed,
       'scheduler': scheduler,
       'save_images': saveImages,
+      'batch_size': batchSize,
+      'batch_count': batchCount,
+      'sd_mode': sdMode,
+      'ui_debug_mode': uiDebugMode,
     };
   }
 }

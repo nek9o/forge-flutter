@@ -399,6 +399,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         : items.values.first;
 
     return FSelect<String>.rich(
+      key: ValueKey('model_${selectedModel ?? initial}'),
       label: Text(L.of(locale, 'model')),
       control: FSelectControl.managed(
         initial: initial,
@@ -431,6 +432,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         : items.values.first;
 
     return FSelect<String>.rich(
+      key: ValueKey('sd_mode_${settings.sdMode}'),
       label: const Text('SD Mode'),
       control: FSelectControl.managed(
         initial: initial,
@@ -467,9 +469,13 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
 
     final initial = items.values.contains(settings.samplerName)
         ? settings.samplerName
-        : items.values.first;
+        : items.values.firstWhere(
+            (s) => settings.samplerName.startsWith(s),
+            orElse: () => items.values.isNotEmpty ? items.values.first : '',
+          );
 
     return FSelect<String>.rich(
+      key: ValueKey('sampler_${settings.samplerName}'),
       label: Text(L.of(locale, 'sampler')),
       control: FSelectControl.managed(
         initial: initial,
@@ -507,6 +513,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         : 'Automatic';
 
     return FSelect<String?>.rich(
+      key: ValueKey('scheduler_${settings.scheduler}'),
       label: Text(L.of(locale, 'scheduler')),
       control: FSelectControl.managed(
         initial: initial,

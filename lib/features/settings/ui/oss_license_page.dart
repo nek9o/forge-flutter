@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -11,65 +12,96 @@ class OssLicensePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
     final locale = ref.watch(localeProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            PhosphorIcon(
-              PhosphorIcons.scroll(),
-              size: 20,
-              color: colorScheme.primary,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              L.of(locale, 'oss_licenses'),
-              style: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0.5),
-            ),
-          ],
-        ),
-      ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _allLicenses.length,
-        separatorBuilder: (context, index) =>
-            Divider(indent: 16, endIndent: 16),
-        itemBuilder: (context, index) {
-          final package = _allLicenses[index];
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 4,
-            ),
-            title: Text(
-              package.name,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            subtitle: Text(
-              '${package.version ?? ""} ${package.description}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant.withAlpha(160),
-                fontSize: 12,
-              ),
-            ),
-            trailing: PhosphorIcon(
-              PhosphorIcons.caretRight(),
-              size: 18,
-              color: colorScheme.onSurfaceVariant.withAlpha(120),
-            ),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => PackageLicensePage(package: package),
+    return ColoredBox(
+      color: fTheme.colors.background,
+      child: FScaffold(
+        header: FHeader(
+          title: Row(
+            children: [
+              FTappable(
+                onPress: () => Navigator.of(context).pop(),
+                child: PhosphorIcon(
+                  PhosphorIcons.arrowLeft(),
+                  size: 20,
+                  color: fTheme.colors.foreground,
                 ),
-              );
-            },
-          );
-        },
+              ),
+              const SizedBox(width: 12),
+              PhosphorIcon(
+                PhosphorIcons.scroll(),
+                size: 20,
+                color: fTheme.colors.primary,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                L.of(locale, 'oss_licenses'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: _allLicenses.length,
+          separatorBuilder: (context, index) => const FDivider(),
+          itemBuilder: (context, index) {
+            final package = _allLicenses[index];
+            return FTappable(
+              onPress: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => PackageLicensePage(package: package),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            package.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: fTheme.colors.foreground,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${package.version ?? ""} ${package.description}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: fTheme.colors.mutedForeground,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PhosphorIcon(
+                      PhosphorIcons.caretRight(),
+                      size: 18,
+                      color: fTheme.colors.mutedForeground,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -205,80 +237,114 @@ class PackageLicensePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
     final locale = ref.watch(localeProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          package.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+    return ColoredBox(
+      color: fTheme.colors.background,
+      child: FScaffold(
+        header: FHeader(
+          title: Row(
+            children: [
+              FTappable(
+                onPress: () => Navigator.of(context).pop(),
+                child: PhosphorIcon(
+                  PhosphorIcons.arrowLeft(),
+                  size: 20,
+                  color: fTheme.colors.foreground,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                package.name,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (package.description.isNotEmpty) ...[
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (package.description.isNotEmpty) ...[
+                Text(
+                  L.of(locale, 'description'),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                    fontSize: 16,
+                    color: fTheme.colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  package.description,
+                  style: TextStyle(color: fTheme.colors.foreground),
+                ),
+                const SizedBox(height: 20),
+              ],
+              if (package.version != null) ...[
+                Text(
+                  L.of(locale, 'version'),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                    fontSize: 16,
+                    color: fTheme.colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  package.version!,
+                  style: TextStyle(color: fTheme.colors.foreground),
+                ),
+                const SizedBox(height: 20),
+              ],
+              if (package.homepage != null || package.repository != null) ...[
+                Text(
+                  L.of(locale, 'links'),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                    fontSize: 16,
+                    color: fTheme.colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (package.homepage != null)
+                  Text(
+                    '${L.of(locale, 'homepage')}: ${package.homepage}',
+                    style: TextStyle(color: fTheme.colors.foreground),
+                  ),
+                if (package.repository != null)
+                  Text(
+                    '${L.of(locale, 'repository')}: ${package.repository}',
+                    style: TextStyle(color: fTheme.colors.foreground),
+                  ),
+                const SizedBox(height: 20),
+              ],
               Text(
-                L.of(locale, 'description'),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                L.of(locale, 'license'),
+                style: TextStyle(
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
+                  fontSize: 16,
+                  color: fTheme.colors.foreground,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(package.description),
-              const SizedBox(height: 20),
-            ],
-            if (package.version != null) ...[
-              Text(
-                L.of(locale, 'version'),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(package.version!),
-              const SizedBox(height: 20),
-            ],
-            if (package.homepage != null || package.repository != null) ...[
-              Text(
-                L.of(locale, 'links'),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (package.homepage != null)
-                Text('${L.of(locale, 'homepage')}: ${package.homepage}'),
-              if (package.repository != null)
-                Text('${L.of(locale, 'repository')}: ${package.repository}'),
-              const SizedBox(height: 20),
-            ],
-            Text(
-              L.of(locale, 'license'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 0,
-              color: colorScheme.surfaceContainerHigh,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+              FCard(
                 child: Text(
                   package.license ?? L.of(locale, 'no_license'),
-                  style: GoogleFonts.geistMono(fontSize: 12),
+                  style: GoogleFonts.geistMono(
+                    fontSize: 12,
+                    color: fTheme.colors.foreground,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/services/stability_matrix_service.dart';
@@ -96,14 +97,14 @@ class _WildcardListState extends ConsumerState<WildcardList> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
 
     return Container(
       width: 200,
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: fTheme.colors.background,
         border: Border(
-          left: BorderSide(color: colorScheme.outlineVariant.withAlpha(40)),
+          left: BorderSide(color: fTheme.colors.border.withAlpha(40)),
         ),
       ),
       child: Column(
@@ -116,34 +117,38 @@ class _WildcardListState extends ConsumerState<WildcardList> {
               children: [
                 Text(
                   'Wildcards',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.w400,
                     letterSpacing: 0.5,
+                    fontSize: 16,
+                    color: fTheme.colors.foreground,
                   ),
                 ),
-                IconButton(
-                  icon: PhosphorIcon(
-                    PhosphorIcons.arrowClockwise(),
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant.withAlpha(160),
+                FButton.icon(
+                  onPress: _loadWildcards,
+                  child: FTooltip(
+                    tipBuilder: (context, controller) => const Text('Reload'),
+                    child: PhosphorIcon(
+                      PhosphorIcons.arrowClockwise(),
+                      size: 16,
+                      color: fTheme.colors.mutedForeground,
+                    ),
                   ),
-                  onPressed: _loadWildcards,
-                  tooltip: 'Reload',
                 ),
               ],
             ),
           ),
-          Divider(height: 1, color: colorScheme.outlineVariant.withAlpha(40)),
+          const FDivider(),
           if (_errorMessage != null)
             Padding(
               padding: const EdgeInsets.all(10),
               child: Text(
                 _errorMessage!,
-                style: TextStyle(color: colorScheme.error, fontSize: 12),
+                style: TextStyle(color: fTheme.colors.error, fontSize: 12),
               ),
             ),
           if (_isLoading)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
+            const Expanded(child: Center(child: FProgress()))
           else
             Expanded(
               child: ListView.builder(
@@ -152,17 +157,8 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                   final tag = _wildcards[index];
                   final isWildcard = tag.startsWith('__');
 
-                  return ListTile(
-                    title: Text(
-                      tag,
-                      style: TextStyle(
-                        fontStyle: isWildcard ? FontStyle.italic : null,
-                        color: isWildcard ? colorScheme.primary : null,
-                        fontSize: 13,
-                      ),
-                    ),
-                    dense: true,
-                    onTap: () {
+                  return FTappable(
+                    onPress: () {
                       final currentTags = ref.read(promptTagsProvider);
                       final newTag = PromptParser.parse(tag).first;
 
@@ -172,27 +168,50 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                       final text = PromptParser.format(newTags);
                       ref.read(promptProvider.notifier).state = text;
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          fontStyle: isWildcard ? FontStyle.italic : null,
+                          color: isWildcard
+                              ? fTheme.colors.primary
+                              : fTheme.colors.foreground,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
             ),
           Padding(
             padding: const EdgeInsets.all(10),
-            child: TextButton.icon(
-              onPressed: () async {
-                final service = ref.read(stabilityMatrixServiceProvider);
-                final path = await service.selectPath();
-                if (path != null) {
-                  await _loadWildcards();
-                }
-              },
-              icon: PhosphorIcon(PhosphorIcons.link(), size: 14),
-              label: const Text(
-                'Link StabilityMatrix',
-                style: TextStyle(fontSize: 12),
-              ),
-              style: TextButton.styleFrom(
-                minimumSize: const Size(double.infinity, 36),
+            child: SizedBox(
+              width: double.infinity,
+              child: FButton(
+                variant: FButtonVariant.ghost,
+                onPress: () async {
+                  final service = ref.read(stabilityMatrixServiceProvider);
+                  final path = await service.selectPath();
+                  if (path != null) {
+                    await _loadWildcards();
+                  }
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    PhosphorIcon(PhosphorIcons.link(), size: 14),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Link StabilityMatrix',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

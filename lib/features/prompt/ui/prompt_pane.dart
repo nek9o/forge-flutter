@@ -14,7 +14,7 @@ class PromptPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
     final locale = ref.watch(localeProvider);
 
     return ncm.ContextMenuRegion(
@@ -26,9 +26,9 @@ class PromptPane extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
+          color: fTheme.colors.background,
           border: Border(
-            left: BorderSide(color: colorScheme.outlineVariant.withAlpha(40)),
+            left: BorderSide(color: fTheme.colors.border.withAlpha(40)),
           ),
         ),
         child: Column(
@@ -40,14 +40,16 @@ class PromptPane extends ConsumerWidget {
                 PhosphorIcon(
                   PhosphorIcons.textAa(),
                   size: 20,
-                  color: colorScheme.primary,
+                  color: fTheme.colors.primary,
                 ),
                 const SizedBox(width: 10),
                 Text(
                   L.of(locale, 'prompt'),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
+                    fontSize: 20,
+                    color: fTheme.colors.foreground,
                   ),
                 ),
                 const Spacer(),
@@ -66,7 +68,7 @@ class PromptPane extends ConsumerWidget {
                           )
                         : PhosphorIcons.lightbulbFilament(),
                     size: 20,
-                    color: colorScheme.onSurfaceVariant,
+                    color: fTheme.colors.mutedForeground,
                   ),
                 ),
               ],
@@ -80,14 +82,16 @@ class PromptPane extends ConsumerWidget {
                 PhosphorIcon(
                   PhosphorIcons.prohibit(),
                   size: 20,
-                  color: colorScheme.error.withAlpha(180),
+                  color: fTheme.colors.error.withAlpha(180),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   L.of(locale, 'negative_prompt'),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
+                    fontSize: 16,
+                    color: fTheme.colors.foreground,
                   ),
                 ),
                 const Spacer(),
@@ -101,7 +105,7 @@ class PromptPane extends ConsumerWidget {
                   icon: PhosphorIcon(
                     PhosphorIcons.trash(),
                     size: 20,
-                    color: colorScheme.onSurfaceVariant,
+                    color: fTheme.colors.mutedForeground,
                   ),
                 ),
               ],
@@ -123,11 +127,11 @@ class PromptPane extends ConsumerWidget {
     return FTooltip(
       tipBuilder: (context, controller) => Text(tooltip),
       child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        type: MaterialType.transparency,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(8),
+          hoverColor: FTheme.of(context).colors.foreground.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(6),
           child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
         ),
       ),

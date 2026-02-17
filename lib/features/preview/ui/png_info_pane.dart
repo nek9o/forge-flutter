@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -21,7 +22,7 @@ class PngInfoPane extends ConsumerWidget {
     final state = ref.watch(previewStoreProvider);
     final effectiveMetadata = metadata ?? state.metadata;
     final effectiveRawParameters = rawParameters ?? state.rawParameters;
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
     final locale = ref.watch(localeProvider);
 
     if (effectiveMetadata == null) {
@@ -29,19 +30,16 @@ class PngInfoPane extends ConsumerWidget {
         child: Text(
           "No PNG Info available",
           style: TextStyle(
-            color: colorScheme.onSurfaceVariant.withAlpha(120),
+            color: fTheme.colors.mutedForeground,
             fontWeight: FontWeight.w300,
           ),
         ),
       );
     }
 
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 0,
-      color: colorScheme.surfaceContainerHigh,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: FCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -53,75 +51,89 @@ class PngInfoPane extends ConsumerWidget {
                     PhosphorIcon(
                       PhosphorIcons.info(),
                       size: 18,
-                      color: colorScheme.primary,
+                      color: fTheme.colors.primary,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'PNG Info',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
+                        fontSize: 16,
+                        color: fTheme.colors.foreground,
                       ),
                     ),
                   ],
                 ),
-                FilledButton.tonalIcon(
-                  onPressed: () {
+                FButton(
+                  variant: FButtonVariant.outline,
+                  onPress: () {
                     _sendToTxt2Img(ref, effectiveMetadata);
                   },
-                  icon: PhosphorIcon(PhosphorIcons.arrowSquareOut(), size: 16),
-                  label: Text(L.of(locale, 'send_to_txt2img')),
-                  style: FilledButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 12),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PhosphorIcon(PhosphorIcons.arrowSquareOut(), size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        L.of(locale, 'send_to_txt2img'),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Divider(color: colorScheme.outlineVariant.withAlpha(40)),
+            const FDivider(),
             const SizedBox(height: 12),
             if (effectiveMetadata.containsKey('prompt')) ...[
               Text(
                 'Prompt',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                style: TextStyle(
+                  color: fTheme.colors.mutedForeground,
                   letterSpacing: 0.8,
                   fontWeight: FontWeight.w600,
+                  fontSize: 12,
                 ),
               ),
               const SizedBox(height: 6),
               SelectableText(
                 effectiveMetadata['prompt'] ?? '',
-                style: GoogleFonts.geistMono(fontSize: 12),
+                style: GoogleFonts.geistMono(
+                  fontSize: 12,
+                  color: fTheme.colors.foreground,
+                ),
               ),
             ],
             if (effectiveMetadata.containsKey('negative_prompt')) ...[
               const SizedBox(height: 16),
               Text(
                 'Negative Prompt',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                style: TextStyle(
+                  color: fTheme.colors.mutedForeground,
                   letterSpacing: 0.8,
                   fontWeight: FontWeight.w600,
+                  fontSize: 12,
                 ),
               ),
               const SizedBox(height: 6),
               SelectableText(
                 effectiveMetadata['negative_prompt'] ?? '',
-                style: GoogleFonts.geistMono(fontSize: 12),
+                style: GoogleFonts.geistMono(
+                  fontSize: 12,
+                  color: fTheme.colors.foreground,
+                ),
               ),
             ],
             const SizedBox(height: 16),
             Text(
               'Settings',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+              style: TextStyle(
+                color: fTheme.colors.mutedForeground,
                 letterSpacing: 0.8,
                 fontWeight: FontWeight.w600,
+                fontSize: 12,
               ),
             ),
             const SizedBox(height: 6),
@@ -133,7 +145,10 @@ class PngInfoPane extends ConsumerWidget {
                         orElse: () => '',
                       ) ??
                   '',
-              style: GoogleFonts.geistMono(fontSize: 12),
+              style: GoogleFonts.geistMono(
+                fontSize: 12,
+                color: fTheme.colors.foreground,
+              ),
             ),
           ],
         ),

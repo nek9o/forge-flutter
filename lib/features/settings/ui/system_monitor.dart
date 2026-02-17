@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// システムリソースモニター
@@ -195,21 +196,12 @@ class _SystemMonitorState extends State<SystemMonitor> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
 
     if (!_initialized) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: colorScheme.primary,
-            ),
-          ),
-        ),
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: FProgress()),
       );
     }
 
@@ -226,7 +218,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
             value: '${_cpuPercent.toStringAsFixed(0)}%',
             percent: _cpuPercent,
             history: _cpuHistory,
-            color: colorScheme.primary,
+            color: fTheme.colors.primary,
           ),
           const SizedBox(height: 10),
           // メモリ
@@ -281,7 +273,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
     required List<double> history,
     required Color color,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,13 +287,13 @@ class _SystemMonitorState extends State<SystemMonitor> {
                 PhosphorIcon(
                   icon,
                   size: 14,
-                  color: colorScheme.onSurfaceVariant,
+                  color: fTheme.colors.mutedForeground,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   label,
                   style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
+                    color: fTheme.colors.mutedForeground,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
@@ -312,7 +304,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
             Text(
               value,
               style: TextStyle(
-                color: colorScheme.onSurface,
+                color: fTheme.colors.foreground,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
@@ -329,7 +321,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
               data: history,
               maxSamples: _maxSamples,
               color: color,
-              backgroundColor: colorScheme.surfaceContainerHighest,
+              backgroundColor: fTheme.colors.muted,
             ),
           ),
         ),

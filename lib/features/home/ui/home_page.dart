@@ -310,20 +310,19 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: SizedBox(
         width: 56,
         height: 44,
-        child: Align(
-          alignment: Alignment.center,
-          child: FTappable(
-            onPress: onPressed,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isActive
-                    ? fTheme.colors.primary.withAlpha(30)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Align(
+        child: Center(
+          child: Material(
+            color: isActive
+                ? fTheme.colors.primary.withAlpha(30)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              onTap: onPressed,
+              hoverColor: fTheme.colors.foreground.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 44,
+                height: 44,
                 alignment: Alignment.center,
                 child: label != null
                     ? Text(
@@ -338,7 +337,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       )
                     : PhosphorIcon(
                         icon,
-                        size: 24,
+                        size: 24, // Icon size
                         color: isActive
                             ? fTheme.colors.primary
                             : fTheme.colors.foreground,

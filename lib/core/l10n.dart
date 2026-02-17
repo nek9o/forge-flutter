@@ -108,7 +108,7 @@ class L {
     // ヒントカード
     'hint_title': '使い方のヒント',
     'hint_chip_convert': 'カンマ区切りでチップに変換',
-    'hint_edit_chip': 'チップをダブルタップで編集',
+    'hint_edit_chip': 'チップをクリックで編集',
     'hint_weight': 'Shift + ホイールで重み調整',
     'hint_reorder': 'ドラッグ&ドロップで並び替え',
     'hint_lora': '<lora:name:weight> 形式でLoRAを追加',
@@ -212,7 +212,7 @@ class L {
     // Hint card
     'hint_title': 'Tips',
     'hint_chip_convert': 'Separate with commas to create chips',
-    'hint_edit_chip': 'Double-tap a chip to edit',
+    'hint_edit_chip': 'Click a chip to edit',
     'hint_weight': 'Shift + scroll to adjust weight',
     'hint_reorder': 'Drag & drop to reorder',
     'hint_lora': 'Add LoRA with <lora:name:weight> format',

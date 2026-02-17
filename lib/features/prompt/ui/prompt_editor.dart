@@ -9,7 +9,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/l10n.dart';
 import '../../settings/ui/lora_browser.dart';
 import '../models/prompt_tag.dart';
-import '../services/prompt_parser.dart';
 import '../store/prompt_store.dart';
 import 'hint_card.dart';
 
@@ -35,15 +34,6 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
-  }
-
-  void _syncTextToTags() {
-    final text = _textController.text.trim();
-    if (text.isEmpty) return;
-
-    final tags = PromptParser.parse(text);
-    ref.read(promptTagsProvider.notifier).setTags(tags);
-    _textController.clear();
   }
 
   void _syncTagsToText() {
@@ -364,9 +354,16 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
   }) {
     return FTooltip(
       tipBuilder: (context, controller) => Text(tooltip),
-      child: FTappable(
-        onPress: onPressed,
-        child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onPressed,
+          hoverColor: FTheme.of(
+            context,
+          ).colors.foreground.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
+        ),
       ),
     );
   }

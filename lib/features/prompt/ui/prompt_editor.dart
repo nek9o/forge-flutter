@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
@@ -104,14 +105,55 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
               ),
             ),
             // テキスト入力エリア
-            FTextField(
-              control: FTextFieldControl.managed(
-                controller: _textController,
-                onChange: (value) => _onTextChanged(value.text),
+            ncm.ContextMenuRegion(
+              onItemSelected: (item) async {
+                if (item.title == L.of(locale, 'paste')) {
+                  final data = await Clipboard.getData('text/plain');
+                  if (data?.text != null) {
+                    final current = _textController.text;
+                    final selection = _textController.selection;
+                    final newText = current.replaceRange(
+                      selection.start == -1 ? current.length : selection.start,
+                      selection.end == -1 ? current.length : selection.end,
+                      data!.text!,
+                    );
+                    _textController.text = newText;
+                    _textController.selection = TextSelection.collapsed(
+                      offset:
+                          (selection.start == -1
+                              ? current.length
+                              : selection.start) +
+                          data.text!.length,
+                    );
+                    _onTextChanged(newText);
+                  }
+                } else if (item.title == L.of(locale, 'clear')) {
+                  _textController.clear();
+                  _onTextChanged('');
+                } else if (item.title == L.of(locale, 'select_all')) {
+                  _textController.selection = TextSelection(
+                    baseOffset: 0,
+                    extentOffset: _textController.text.length,
+                  );
+                  _focusNode.requestFocus();
+                }
+              },
+              menuItems: [
+                ncm.MenuItem(title: L.of(locale, 'paste')),
+                ncm.MenuItem(title: L.of(locale, 'clear')),
+                ncm.MenuItem(title: L.of(locale, 'select_all')),
+              ],
+              child: FTextField(
+                contextMenuBuilder: (context, editableTextState) =>
+                    const SizedBox.shrink(),
+                control: FTextFieldControl.managed(
+                  controller: _textController,
+                  onChange: (value) => _onTextChanged(value.text),
+                ),
+                focusNode: _focusNode,
+                hint: L.of(locale, 'prompt_hint'),
+                maxLines: null,
               ),
-              focusNode: _focusNode,
-              hint: L.of(locale, 'prompt_hint'),
-              maxLines: null,
             ),
             const SizedBox(height: 12),
             // チップ表示エリア

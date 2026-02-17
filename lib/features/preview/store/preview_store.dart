@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
@@ -132,6 +134,32 @@ class PreviewStore extends StateNotifier<PreviewState> {
   void _stopProgressPolling() {
     _progressTimer?.cancel();
     _progressTimer = null;
+  }
+
+  Future<void> saveImage() async {
+    if (state.base64Image == null) return;
+
+    try {
+      final bytes = base64Decode(state.base64Image!);
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'generation_$timestamp.png';
+
+      final String? outputPath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Image',
+        fileName: fileName,
+        type: FileType.custom,
+        allowedExtensions: ['png'],
+      );
+
+      if (outputPath != null) {
+        final file = File(outputPath);
+        await file.writeAsBytes(bytes);
+      }
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(errorMessage: 'Failed to save image: $e');
+      }
+    }
   }
 
   @override

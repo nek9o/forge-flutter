@@ -1,0 +1,870 @@
+diff --git a/lib/features/preview/store/preview_store.dart b/lib/features/preview/store/preview_store.dart
+index 34de14f..e60f5b1 100644
+--- a/lib/features/preview/store/preview_store.dart
++++ b/lib/features/preview/store/preview_store.dart
+@@ -1,6 +1,8 @@
+ import 'dart:async';
+ import 'dart:convert';
++import 'dart:io';
+ 
++import 'package:file_picker/file_picker.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ 
+ import '../../../core/providers.dart';
+@@ -134,6 +136,32 @@ class PreviewStore extends StateNotifier<PreviewState> {
+     _progressTimer = null;
+   }
+ 
++  Future<void> saveImage() async {
++    if (state.base64Image == null) return;
++
++    try {
++      final bytes = base64Decode(state.base64Image!);
++      final timestamp = DateTime.now().millisecondsSinceEpoch;
++      final fileName = 'generation_$timestamp.png';
++
++      final String? outputPath = await FilePicker.platform.saveFile(
++        dialogTitle: 'Save Image',
++        fileName: fileName,
++        type: FileType.custom,
++        allowedExtensions: ['png'],
++      );
++
++      if (outputPath != null) {
++        final file = File(outputPath);
++        await file.writeAsBytes(bytes);
++      }
++    } catch (e) {
++      if (mounted) {
++        state = state.copyWith(errorMessage: 'Failed to save image: $e');
++      }
++    }
++  }
++
+   @override
+   void dispose() {
+     _stopProgressPolling();
+diff --git a/lib/features/preview/ui/preview_pane.dart b/lib/features/preview/ui/preview_pane.dart
+index 200dc45..212ebd0 100644
+--- a/lib/features/preview/ui/preview_pane.dart
++++ b/lib/features/preview/ui/preview_pane.dart
+@@ -3,6 +3,7 @@ import 'dart:convert';
+ import 'package:flutter/material.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:forui/forui.dart';
++import 'package:native_context_menu/native_context_menu.dart' as ncm;
+ import 'package:phosphor_flutter/phosphor_flutter.dart';
+ 
+ import '../../../core/l10n.dart';
+@@ -160,12 +161,30 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
+                           child: Stack(
+                             alignment: Alignment.center,
+                             children: [
+-                              InteractiveViewer(
+-                                minScale: 0.1,
+-                                maxScale: 5.0,
+-                                child: Image.memory(
+-                                  base64Decode(previewState.base64Image!),
+-                                  fit: BoxFit.contain,
++                              ncm.ContextMenuRegion(
++                                onItemSelected: (item) {
++                                  if (item.title ==
++                                      L.of(ref.read(localeProvider), 'save')) {
++                                    ref
++                                        .read(previewStoreProvider.notifier)
++                                        .saveImage();
++                                  }
++                                },
++                                menuItems: [
++                                  ncm.MenuItem(
++                                    title: L.of(
++                                      ref.read(localeProvider),
++                                      'save',
++                                    ),
++                                  ),
++                                ],
++                                child: InteractiveViewer(
++                                  minScale: 0.1,
++                                  maxScale: 5.0,
++                                  child: Image.memory(
++                                    base64Decode(previewState.base64Image!),
++                                    fit: BoxFit.contain,
++                                  ),
+                                 ),
+                               ),
+                               Positioned(
+@@ -209,10 +228,25 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
+                     child: previewState.base64Image != null
+                         ? ClipRRect(
+                             borderRadius: BorderRadius.circular(16),
+-                            child: Image.memory(
+-                              base64Decode(previewState.base64Image!),
+-                              fit: BoxFit.contain,
+-                              gaplessPlayback: true,
++                            child: ncm.ContextMenuRegion(
++                              onItemSelected: (item) {
++                                if (item.title ==
++                                    L.of(ref.read(localeProvider), 'save')) {
++                                  ref
++                                      .read(previewStoreProvider.notifier)
++                                      .saveImage();
++                                }
++                              },
++                              menuItems: [
++                                ncm.MenuItem(
++                                  title: L.of(ref.read(localeProvider), 'save'),
++                                ),
++                              ],
++                              child: Image.memory(
++                                base64Decode(previewState.base64Image!),
++                                fit: BoxFit.contain,
++                                gaplessPlayback: true,
++                              ),
+                             ),
+                           )
+                         : Center(
+diff --git a/lib/features/prompt/ui/negative_prompt_editor.dart b/lib/features/prompt/ui/negative_prompt_editor.dart
+index b3baaba..c44727c 100644
+--- a/lib/features/prompt/ui/negative_prompt_editor.dart
++++ b/lib/features/prompt/ui/negative_prompt_editor.dart
+@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:forui/forui.dart';
+ import 'package:google_fonts/google_fonts.dart';
++import 'package:native_context_menu/native_context_menu.dart' as ncm;
+ import 'package:phosphor_flutter/phosphor_flutter.dart';
+ 
+ import '../../../core/l10n.dart';
+@@ -63,14 +64,55 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+       children: [
+         // テキスト入力エリア
+-        FTextField(
+-          control: FTextFieldControl.managed(
+-            controller: _textController,
+-            onChange: (value) => _onTextChanged(value.text),
++        ncm.ContextMenuRegion(
++          onItemSelected: (item) async {
++            if (item.title == L.of(locale, 'paste')) {
++              final data = await Clipboard.getData('text/plain');
++              if (data?.text != null) {
++                final current = _textController.text;
++                final selection = _textController.selection;
++                final newText = current.replaceRange(
++                  selection.start == -1 ? current.length : selection.start,
++                  selection.end == -1 ? current.length : selection.end,
++                  data!.text!,
++                );
++                _textController.text = newText;
++                _textController.selection = TextSelection.collapsed(
++                  offset:
++                      (selection.start == -1
++                          ? current.length
++                          : selection.start) +
++                      data.text!.length,
++                );
++                _onTextChanged(newText);
++              }
++            } else if (item.title == L.of(locale, 'clear')) {
++              _textController.clear();
++              _onTextChanged('');
++            } else if (item.title == L.of(locale, 'select_all')) {
++              _textController.selection = TextSelection(
++                baseOffset: 0,
++                extentOffset: _textController.text.length,
++              );
++              _focusNode.requestFocus();
++            }
++          },
++          menuItems: [
++            ncm.MenuItem(title: L.of(locale, 'paste')),
++            ncm.MenuItem(title: L.of(locale, 'clear')),
++            ncm.MenuItem(title: L.of(locale, 'select_all')),
++          ],
++          child: FTextField(
++            contextMenuBuilder: (context, editableTextState) =>
++                const SizedBox.shrink(),
++            control: FTextFieldControl.managed(
++              controller: _textController,
++              onChange: (value) => _onTextChanged(value.text),
++            ),
++            focusNode: _focusNode,
++            hint: L.of(locale, 'negative_prompt_hint'),
++            maxLines: null,
+           ),
+-          focusNode: _focusNode,
+-          hint: L.of(locale, 'negative_prompt_hint'),
+-          maxLines: null,
+         ),
+         const SizedBox(height: 12),
+         // チップ表示エリア
+diff --git a/lib/features/prompt/ui/prompt_editor.dart b/lib/features/prompt/ui/prompt_editor.dart
+index 5a3f736..0dd22bd 100644
+--- a/lib/features/prompt/ui/prompt_editor.dart
++++ b/lib/features/prompt/ui/prompt_editor.dart
+@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:forui/forui.dart';
+ import 'package:google_fonts/google_fonts.dart';
++import 'package:native_context_menu/native_context_menu.dart' as ncm;
+ import 'package:phosphor_flutter/phosphor_flutter.dart';
+ 
+ import '../../../core/l10n.dart';
+@@ -104,14 +105,55 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
+               ),
+             ),
+             // テキスト入力エリア
+-            FTextField(
+-              control: FTextFieldControl.managed(
+-                controller: _textController,
+-                onChange: (value) => _onTextChanged(value.text),
++            ncm.ContextMenuRegion(
++              onItemSelected: (item) async {
++                if (item.title == L.of(locale, 'paste')) {
++                  final data = await Clipboard.getData('text/plain');
++                  if (data?.text != null) {
++                    final current = _textController.text;
++                    final selection = _textController.selection;
++                    final newText = current.replaceRange(
++                      selection.start == -1 ? current.length : selection.start,
++                      selection.end == -1 ? current.length : selection.end,
++                      data!.text!,
++                    );
++                    _textController.text = newText;
++                    _textController.selection = TextSelection.collapsed(
++                      offset:
++                          (selection.start == -1
++                              ? current.length
++                              : selection.start) +
++                          data.text!.length,
++                    );
++                    _onTextChanged(newText);
++                  }
++                } else if (item.title == L.of(locale, 'clear')) {
++                  _textController.clear();
++                  _onTextChanged('');
++                } else if (item.title == L.of(locale, 'select_all')) {
++                  _textController.selection = TextSelection(
++                    baseOffset: 0,
++                    extentOffset: _textController.text.length,
++                  );
++                  _focusNode.requestFocus();
++                }
++              },
++              menuItems: [
++                ncm.MenuItem(title: L.of(locale, 'paste')),
++                ncm.MenuItem(title: L.of(locale, 'clear')),
++                ncm.MenuItem(title: L.of(locale, 'select_all')),
++              ],
++              child: FTextField(
++                contextMenuBuilder: (context, editableTextState) =>
++                    const SizedBox.shrink(),
++                control: FTextFieldControl.managed(
++                  controller: _textController,
++                  onChange: (value) => _onTextChanged(value.text),
++                ),
++                focusNode: _focusNode,
++                hint: L.of(locale, 'prompt_hint'),
++                maxLines: null,
+               ),
+-              focusNode: _focusNode,
+-              hint: L.of(locale, 'prompt_hint'),
+-              maxLines: null,
+             ),
+             const SizedBox(height: 12),
+             // チップ表示エリア
+diff --git a/lib/features/prompt/ui/prompt_pane.dart b/lib/features/prompt/ui/prompt_pane.dart
+index 826f32c..86ba4d2 100644
+--- a/lib/features/prompt/ui/prompt_pane.dart
++++ b/lib/features/prompt/ui/prompt_pane.dart
+@@ -1,7 +1,6 @@
+ import 'package:flutter/material.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:forui/forui.dart';
+-import 'package:native_context_menu/native_context_menu.dart' as ncm;
+ import 'package:phosphor_flutter/phosphor_flutter.dart';
+ 
+ import '../../../core/l10n.dart';
+@@ -17,103 +16,93 @@ class PromptPane extends ConsumerWidget {
+     final fTheme = FTheme.of(context);
+     final locale = ref.watch(localeProvider);
+ 
+-    return ncm.ContextMenuRegion(
+-      onItemSelected: (item) {},
+-      menuItems: [
+-        ncm.MenuItem(title: L.of(locale, 'clear')),
+-        ncm.MenuItem(title: L.of(locale, 'select_all')),
+-      ],
+-      child: Container(
+-        padding: const EdgeInsets.all(20),
+-        decoration: BoxDecoration(
+-          color: fTheme.colors.background,
+-          border: Border(
+-            left: BorderSide(color: fTheme.colors.border.withAlpha(40)),
+-          ),
++    return Container(
++      padding: const EdgeInsets.all(20),
++      decoration: BoxDecoration(
++        color: fTheme.colors.background,
++        border: Border(
++          left: BorderSide(color: fTheme.colors.border.withAlpha(40)),
+         ),
+-        child: Column(
+-          crossAxisAlignment: CrossAxisAlignment.start,
+-          children: [
+-            // プロンプトヘッダー
+-            Row(
+-              children: [
+-                PhosphorIcon(
+-                  PhosphorIcons.textAa(),
+-                  size: 20,
+-                  color: fTheme.colors.primary,
+-                ),
+-                const SizedBox(width: 10),
+-                Text(
+-                  L.of(locale, 'prompt'),
+-                  style: TextStyle(
+-                    fontWeight: FontWeight.w500,
+-                    letterSpacing: 0.5,
+-                    fontSize: 20,
+-                    color: fTheme.colors.foreground,
+-                  ),
+-                ),
+-                const Spacer(),
+-                _buildHeaderButton(
+-                  context,
+-                  tooltip: L.of(locale, 'hint'),
+-                  onPressed: () {
+-                    final current = ref.read(promptHintVisibleProvider);
+-                    ref.read(promptHintVisibleProvider.notifier).state =
+-                        !current;
+-                  },
+-                  icon: PhosphorIcon(
+-                    ref.watch(promptHintVisibleProvider)
+-                        ? PhosphorIcons.lightbulbFilament(
+-                            PhosphorIconsStyle.fill,
+-                          )
+-                        : PhosphorIcons.lightbulbFilament(),
+-                    size: 20,
+-                    color: fTheme.colors.mutedForeground,
+-                  ),
++      ),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.start,
++        children: [
++          // プロンプトヘッダー
++          Row(
++            children: [
++              PhosphorIcon(
++                PhosphorIcons.textAa(),
++                size: 20,
++                color: fTheme.colors.primary,
++              ),
++              const SizedBox(width: 10),
++              Text(
++                L.of(locale, 'prompt'),
++                style: TextStyle(
++                  fontWeight: FontWeight.w500,
++                  letterSpacing: 0.5,
++                  fontSize: 20,
++                  color: fTheme.colors.foreground,
+                 ),
+-              ],
+-            ),
+-            const SizedBox(height: 16),
+-            const Expanded(flex: 3, child: PromptEditor()),
+-            const SizedBox(height: 24),
+-            // ネガティブプロンプトヘッダー
+-            Row(
+-              children: [
+-                PhosphorIcon(
+-                  PhosphorIcons.prohibit(),
++              ),
++              const Spacer(),
++              _buildHeaderButton(
++                context,
++                tooltip: L.of(locale, 'hint'),
++                onPressed: () {
++                  final current = ref.read(promptHintVisibleProvider);
++                  ref.read(promptHintVisibleProvider.notifier).state = !current;
++                },
++                icon: PhosphorIcon(
++                  ref.watch(promptHintVisibleProvider)
++                      ? PhosphorIcons.lightbulbFilament(PhosphorIconsStyle.fill)
++                      : PhosphorIcons.lightbulbFilament(),
+                   size: 20,
+-                  color: fTheme.colors.error.withAlpha(180),
++                  color: fTheme.colors.mutedForeground,
+                 ),
+-                const SizedBox(width: 10),
+-                Text(
+-                  L.of(locale, 'negative_prompt'),
+-                  style: TextStyle(
+-                    fontWeight: FontWeight.w500,
+-                    letterSpacing: 0.5,
+-                    fontSize: 16,
+-                    color: fTheme.colors.foreground,
+-                  ),
++              ),
++            ],
++          ),
++          const SizedBox(height: 16),
++          const Expanded(flex: 3, child: PromptEditor()),
++          const SizedBox(height: 24),
++          // ネガティブプロンプトヘッダー
++          Row(
++            children: [
++              PhosphorIcon(
++                PhosphorIcons.prohibit(),
++                size: 20,
++                color: fTheme.colors.error.withAlpha(180),
++              ),
++              const SizedBox(width: 10),
++              Text(
++                L.of(locale, 'negative_prompt'),
++                style: TextStyle(
++                  fontWeight: FontWeight.w500,
++                  letterSpacing: 0.5,
++                  fontSize: 16,
++                  color: fTheme.colors.foreground,
+                 ),
+-                const Spacer(),
+-                _buildHeaderButton(
+-                  context,
+-                  tooltip: L.of(locale, 'clear'),
+-                  onPressed: () {
+-                    ref.read(negativePromptTagsProvider.notifier).setTags([]);
+-                    ref.read(negativePromptProvider.notifier).state = '';
+-                  },
+-                  icon: PhosphorIcon(
+-                    PhosphorIcons.trash(),
+-                    size: 20,
+-                    color: fTheme.colors.mutedForeground,
+-                  ),
++              ),
++              const Spacer(),
++              _buildHeaderButton(
++                context,
++                tooltip: L.of(locale, 'clear'),
++                onPressed: () {
++                  ref.read(negativePromptTagsProvider.notifier).setTags([]);
++                  ref.read(negativePromptProvider.notifier).state = '';
++                },
++                icon: PhosphorIcon(
++                  PhosphorIcons.trash(),
++                  size: 20,
++                  color: fTheme.colors.mutedForeground,
+                 ),
+-              ],
+-            ),
+-            const SizedBox(height: 16),
+-            const Expanded(flex: 2, child: NegativePromptEditor()),
+-          ],
+-        ),
++              ),
++            ],
++          ),
++          const SizedBox(height: 16),
++          const Expanded(flex: 2, child: NegativePromptEditor()),
++        ],
+       ),
+     );
+   }
+diff --git a/lib/features/settings/ui/settings_pane.dart b/lib/features/settings/ui/settings_pane.dart
+index 34d2b71..74dd146 100644
+--- a/lib/features/settings/ui/settings_pane.dart
++++ b/lib/features/settings/ui/settings_pane.dart
+@@ -1,6 +1,8 @@
+ import 'package:flutter/material.dart';
++import 'package:flutter/services.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:forui/forui.dart';
++import 'package:native_context_menu/native_context_menu.dart' as ncm;
+ import 'package:phosphor_flutter/phosphor_flutter.dart';
+ 
+ import '../../../core/l10n.dart';
+@@ -166,33 +168,33 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
+                         title: Text(L.of(locale, 'image_settings')),
+                         child: Column(
+                           children: [
+-                            _buildSlider(
+-                              context: context,
+-                              fTheme: fTheme,
++                            _buildNumberInput(
++                              context,
++                              ref: ref,
+                               label: L.of(locale, 'width'),
+                               value: settings.width.toDouble(),
+                               min: 64,
+                               max: 2048,
+-                              divisions: (2048 - 64) ~/ 8,
+                               onChanged: (v) => ref
+                                   .read(generationSettingsProvider.notifier)
+                                   .updateWidth(v.toInt()),
+                             ),
+-                            _buildSlider(
+-                              context: context,
+-                              fTheme: fTheme,
++                            const SizedBox(height: 16),
++                            _buildNumberInput(
++                              context,
++                              ref: ref,
+                               label: L.of(locale, 'height'),
+                               value: settings.height.toDouble(),
+                               min: 64,
+                               max: 2048,
+-                              divisions: (2048 - 64) ~/ 8,
+                               onChanged: (v) => ref
+                                   .read(generationSettingsProvider.notifier)
+                                   .updateHeight(v.toInt()),
+                             ),
+-                            _buildSlider(
+-                              context: context,
+-                              fTheme: fTheme,
++                            const SizedBox(height: 16),
++                            _buildNumberInput(
++                              context,
++                              ref: ref,
+                               label: L.of(locale, 'sampling_steps'),
+                               value: settings.steps.toDouble(),
+                               min: 1,
+@@ -201,9 +203,10 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
+                                   .read(generationSettingsProvider.notifier)
+                                   .updateSteps(v.toInt()),
+                             ),
+-                            _buildSlider(
+-                              context: context,
+-                              fTheme: fTheme,
++                            const SizedBox(height: 16),
++                            _buildNumberInput(
++                              context,
++                              ref: ref,
+                               label: L.of(locale, 'cfg_scale'),
+                               value: settings.cfgScale,
+                               min: 1,
+@@ -220,9 +223,9 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
+                         title: Text(L.of(locale, 'batch_size')),
+                         child: Column(
+                           children: [
+-                            _buildSlider(
+-                              context: context,
+-                              fTheme: fTheme,
++                            _buildNumberInput(
++                              context,
++                              ref: ref,
+                               label: L.of(locale, 'batch_size'),
+                               value: settings.batchSize.toDouble(),
+                               min: 1,
+@@ -231,9 +234,10 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
+                                   .read(generationSettingsProvider.notifier)
+                                   .updateBatchSize(v.toInt()),
+                             ),
+-                            _buildSlider(
+-                              context: context,
+-                              fTheme: fTheme,
++                            const SizedBox(height: 16),
++                            _buildNumberInput(
++                              context,
++                              ref: ref,
+                               label: L.of(locale, 'batch_count'),
+                               value: settings.batchCount.toDouble(),
+                               min: 1,
+@@ -254,21 +258,69 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
+                           child: Row(
+                             children: [
+                               Expanded(
+-                                child: FTextField(
+-                                  focusNode: _seedFocusNode,
+-                                  control: FTextFieldControl.managed(
+-                                    controller: _seedController,
+-                                    onChange: (value) {
+-                                      final seed = int.tryParse(value.text);
+-                                      if (seed != null) {
+-                                        ref
+-                                            .read(
+-                                              generationSettingsProvider
+-                                                  .notifier,
+-                                            )
+-                                            .updateSeed(seed);
++                                child: ncm.ContextMenuRegion(
++                                  onItemSelected: (item) async {
++                                    if (item.title == L.of(locale, 'paste')) {
++                                      final data = await Clipboard.getData(
++                                        'text/plain',
++                                      );
++                                      if (data?.text != null) {
++                                        _seedController.text = data!.text!;
++                                        final seed = int.tryParse(data.text!);
++                                        if (seed != null) {
++                                          ref
++                                              .read(
++                                                generationSettingsProvider
++                                                    .notifier,
++                                              )
++                                              .updateSeed(seed);
++                                        }
+                                       }
+-                                    },
++                                    } else if (item.title ==
++                                        L.of(locale, 'clear')) {
++                                      _seedController.clear();
++                                    } else if (item.title ==
++                                        L.of(locale, 'select_all')) {
++                                      _seedController.selection = TextSelection(
++                                        baseOffset: 0,
++                                        extentOffset:
++                                            _seedController.text.length,
++                                      );
++                                      _seedFocusNode.requestFocus();
++                                    }
++                                  },
++                                  menuItems: [
++                                    ncm.MenuItem(title: L.of(locale, 'paste')),
++                                    ncm.MenuItem(title: L.of(locale, 'clear')),
++                                    ncm.MenuItem(
++                                      title: L.of(locale, 'select_all'),
++                                    ),
++                                  ],
++                                  child: FTextField(
++                                    focusNode: _seedFocusNode,
++                                    keyboardType: TextInputType.number,
++                                    inputFormatters: [
++                                      FilteringTextInputFormatter.allow(
++                                        RegExp(r'[0-9-]'),
++                                      ),
++                                    ],
++                                    contextMenuBuilder:
++                                        (context, editableTextState) =>
++                                            const SizedBox.shrink(),
++                                    control: FTextFieldControl.managed(
++                                      controller: _seedController,
++                                      onChange: (value) {
++                                        final seed = int.tryParse(value.text);
++                                        if (seed != null) {
++                                          ref
++                                              .read(
++                                                generationSettingsProvider
++                                                    .notifier,
++                                              )
++                                              .updateSeed(seed);
++                                        }
++                                      },
++                                    ),
+                                   ),
+                                 ),
+                               ),
+@@ -474,71 +526,159 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
+     );
+   }
+ 
+-  Widget _buildSlider({
+-    required BuildContext context,
+-    required FThemeData fTheme,
++  Widget _buildNumberInput(
++    BuildContext context, {
++    required WidgetRef ref,
+     required String label,
+     required double value,
+     required double min,
+     required double max,
+     required ValueChanged<double> onChanged,
+-    int? divisions,
++    String? tooltip,
+   }) {
+-    // スライダーの値と同期するためのコントローラー
+-    final controller = TextEditingController(
+-      text: value.remainder(1) == 0
+-          ? value.toInt().toString()
+-          : value.toStringAsFixed(1),
++    return FLabel(
++      axis: Axis.vertical,
++      label: tooltip != null
++          ? Row(
++              children: [
++                Text(label),
++                const SizedBox(width: 4),
++                FTooltip(
++                  tipBuilder: (context, controller) => Text(tooltip),
++                  child: PhosphorIcon(PhosphorIcons.info(), size: 14),
++                ),
++              ],
++            )
++          : Text(label),
++      child: _SliderInput(
++        value: value,
++        min: min,
++        max: max,
++        onChanged: onChanged,
++        isDecimal: label.contains('CFG') || label.contains('Scale'),
++      ),
+     );
+-    // カーソルが最後尾にいくように設定
+-    controller.selection = TextSelection.fromPosition(
+-      TextPosition(offset: controller.text.length),
++  }
++}
++
++class _SliderInput extends ConsumerStatefulWidget {
++  final double value;
++  final double min;
++  final double max;
++  final ValueChanged<double> onChanged;
++  final bool isDecimal;
++
++  const _SliderInput({
++    required this.value,
++    required this.min,
++    required this.max,
++    required this.onChanged,
++    this.isDecimal = false,
++  });
++
++  @override
++  ConsumerState<_SliderInput> createState() => _SliderInputState();
++}
++
++class _SliderInputState extends ConsumerState<_SliderInput> {
++  late TextEditingController _controller;
++  bool _isFocused = false;
++
++  @override
++  void initState() {
++    super.initState();
++    _controller = TextEditingController(
++      text: widget.isDecimal
++          ? widget.value.toStringAsFixed(1)
++          : widget.value.toInt().toString(),
+     );
++  }
+ 
+-    return Padding(
+-      padding: const EdgeInsets.only(bottom: 16),
+-      child: Column(
+-        crossAxisAlignment: CrossAxisAlignment.stretch,
+-        mainAxisSize: MainAxisSize.min,
+-        children: [
+-          Row(
+-            children: [
+-              Expanded(
+-                child: Text(
+-                  label,
+-                  style: const TextStyle(fontSize: 14),
+-                  overflow: TextOverflow.ellipsis,
+-                ),
+-              ),
+-              const SizedBox(width: 8),
+-              SizedBox(
+-                width: 80,
+-                // 高さを指定せず、必要最小限の幅だけ確保
+-                child: FTextField(
+-                  control: FTextFieldControl.managed(
+-                    controller: controller,
+-                    onChange: (v) {
+-                      final newVal = double.tryParse(v.text);
+-                      if (newVal != null) {
+-                        final clamped = newVal.clamp(min, max);
+-                        onChanged(clamped);
+-                      }
+-                    },
+-                  ),
+-                ),
+-              ),
+-            ],
+-          ),
+-          const SizedBox(height: 4),
+-          FSlider(
+-            control: FSliderControl.managedContinuous(
+-              initial: FSliderValue(max: (value - min) / (max - min)),
+-              onChange: (v) {
+-                onChanged(v.max * (max - min) + min);
+-              },
+-            ),
++  @override
++  void didUpdateWidget(_SliderInput oldWidget) {
++    super.didUpdateWidget(oldWidget);
++    if (oldWidget.value != widget.value && !_isFocused) {
++      final newText = widget.isDecimal
++          ? widget.value.toStringAsFixed(1)
++          : widget.value.toInt().toString();
++      if (_controller.text != newText) {
++        _controller.text = newText;
++      }
++    }
++  }
++
++  @override
++  void dispose() {
++    _controller.dispose();
++    super.dispose();
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final locale = ref.watch(localeProvider);
++
++    return ncm.ContextMenuRegion(
++      onItemSelected: (item) async {
++        if (item.title == L.of(locale, 'paste')) {
++          final data = await Clipboard.getData('text/plain');
++          if (data?.text != null) {
++            _controller.text = data!.text!;
++            final newVal = double.tryParse(data.text!);
++            if (newVal != null) {
++              widget.onChanged(newVal.clamp(widget.min, widget.max));
++            }
++          }
++        } else if (item.title == L.of(locale, 'clear')) {
++          _controller.clear();
++        } else if (item.title == L.of(locale, 'select_all')) {
++          _controller.selection = TextSelection(
++            baseOffset: 0,
++            extentOffset: _controller.text.length,
++          );
++        }
++      },
++      menuItems: [
++        ncm.MenuItem(title: L.of(locale, 'paste')),
++        ncm.MenuItem(title: L.of(locale, 'clear')),
++        ncm.MenuItem(title: L.of(locale, 'select_all')),
++      ],
++      child: Focus(
++        onFocusChange: (hasFocus) {
++          setState(() {
++            _isFocused = hasFocus;
++          });
++          if (!hasFocus) {
++            // フォーカスが外れた時に値を正規化
++            final val = double.tryParse(_controller.text) ?? widget.value;
++            final clamped = val.clamp(widget.min, widget.max);
++            widget.onChanged(clamped);
++            _controller.text = widget.isDecimal
++                ? clamped.toStringAsFixed(1)
++                : clamped.toInt().toString();
++          }
++        },
++        child: FTextField(
++          keyboardType: widget.isDecimal
++              ? const TextInputType.numberWithOptions(decimal: true)
++              : TextInputType.number,
++          inputFormatters: [
++            if (widget.isDecimal)
++              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
++            else
++              FilteringTextInputFormatter.digitsOnly,
++          ],
++          contextMenuBuilder: (context, editableTextState) =>
++              const SizedBox.shrink(),
++          control: FTextFieldControl.managed(
++            controller: _controller,
++            onChange: (v) {
++              final newVal = double.tryParse(v.text);
++              if (newVal != null) {
++                widget.onChanged(newVal.clamp(widget.min, widget.max));
++              }
++            },
+           ),
+-        ],
++        ),
+       ),
+     );
+   }

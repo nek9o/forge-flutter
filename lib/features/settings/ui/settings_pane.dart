@@ -95,7 +95,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                                 selectedModel,
                                 locale,
                               ),
-                              loading: () => const LinearProgressIndicator(),
+                              loading: () => const FProgress(),
                               error: (err, _) => Text('Error: $err'),
                             ),
                             const SizedBox(height: 16),
@@ -107,7 +107,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                                 settings,
                                 locale,
                               ),
-                              loading: () => const LinearProgressIndicator(),
+                              loading: () => const FProgress(),
                               error: (err, _) => Text('Error: $err'),
                             ),
                             const SizedBox(height: 16),
@@ -117,7 +117,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                                 settings,
                                 locale,
                               ),
-                              loading: () => const LinearProgressIndicator(),
+                              loading: () => const FProgress(),
                               error: (err, _) => Text('Error: $err'),
                             ),
                           ],
@@ -259,7 +259,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
           ),
           // システムモニター
           if (widget.showMonitor) ...[
-            Divider(color: fTheme.colors.border),
+            FDivider(),
             Padding(
               padding: const EdgeInsets.all(12),
               child: const SystemMonitor(),

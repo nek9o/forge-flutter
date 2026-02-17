@@ -39,7 +39,7 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 ## 技術スタック
 
 - **フレームワーク:** Flutter (Windows Native)
-- **UIデザイン:** Material 3 Expressive
+- **UIデザイン:** [Forui](https://forui.dev/) (ミニマリスティック Flutter UIライブラリ)
 - **フォント:**
   - **UI:** IBM Plex Sans JP
   - **エディタ:** Geist Mono

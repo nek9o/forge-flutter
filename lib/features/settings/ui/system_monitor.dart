@@ -16,7 +16,7 @@ class SystemMonitor extends StatefulWidget {
 
 class _SystemMonitorState extends State<SystemMonitor> {
   Timer? _timer;
-  static const int _maxSamples = 60; // 約5分分 (5秒間隔)
+  static const int _maxSamples = 300; // 約5分分 (1秒間隔)
 
   // データ履歴
   final List<double> _cpuHistory = [];
@@ -43,7 +43,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
   void initState() {
     super.initState();
     _fetchData();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _fetchData());
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _fetchData());
   }
 
   @override
@@ -53,7 +53,13 @@ class _SystemMonitorState extends State<SystemMonitor> {
   }
 
   Future<void> _fetchData() async {
-    await Future.wait([_fetchCpu(), _fetchMemory(), _fetchGpu()]);
+    if (Platform.isWindows) {
+      // WindowsではCPU、メモリをまとめて取得して高速化
+      await Future.wait([_fetchWindowsSystemStats(), _fetchGpu()]);
+    } else {
+      await Future.wait([_fetchCpu(), _fetchMemory(), _fetchGpu()]);
+    }
+
     if (mounted) {
       setState(() {
         _initialized = true;
@@ -61,21 +67,46 @@ class _SystemMonitorState extends State<SystemMonitor> {
     }
   }
 
+  Future<void> _fetchWindowsSystemStats() async {
+    try {
+      final result = await Process.run('powershell', [
+        '-NoProfile',
+        '-Command',
+        r'$os = Get-CimInstance Win32_OperatingSystem; $cpu = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; "$cpu;$($os.FreePhysicalMemory),$($os.TotalVisibleMemorySize)"',
+      ], runInShell: false);
+
+      final output = result.stdout.toString().trim();
+      // 出力例: "15;1234567,16777216"
+      final topParts = output.split(';');
+      if (topParts.length == 2) {
+        // CPU
+        final cpuValue = double.tryParse(topParts[0]);
+        if (cpuValue != null) {
+          _cpuPercent = cpuValue;
+          _addSample(_cpuHistory, cpuValue);
+        }
+
+        // Memory
+        final memParts = topParts[1].split(',');
+        if (memParts.length == 2) {
+          final free = double.tryParse(memParts[0]);
+          final total = double.tryParse(memParts[1]);
+          if (free != null && total != null && total > 0) {
+            _memoryTotalGB = total / 1024 / 1024; // KB→GB
+            _memoryUsedGB = (total - free) / 1024 / 1024;
+            _memoryPercent = ((total - free) / total * 100);
+            _addSample(_memoryHistory, _memoryPercent);
+          }
+        }
+      }
+    } catch (_) {
+      // 取得失敗時は何もしない
+    }
+  }
+
   Future<void> _fetchCpu() async {
     try {
-      if (Platform.isWindows) {
-        final result = await Process.run('powershell', [
-          '-NoProfile',
-          '-Command',
-          'Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average | Select-Object -ExpandProperty Average',
-        ], runInShell: true);
-        final output = result.stdout.toString().trim();
-        final value = double.tryParse(output);
-        if (value != null) {
-          _cpuPercent = value;
-          _addSample(_cpuHistory, value);
-        }
-      } else if (Platform.isLinux) {
+      if (Platform.isLinux) {
         final lines = await File('/proc/stat').readAsLines();
         // 1行目: "cpu  2255 34 2290 22625563 6290 127 456"
         final parts = lines.first
@@ -109,26 +140,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
 
   Future<void> _fetchMemory() async {
     try {
-      if (Platform.isWindows) {
-        final result = await Process.run('powershell', [
-          '-NoProfile',
-          '-Command',
-          "Get-CimInstance Win32_OperatingSystem | ForEach-Object { \$_.FreePhysicalMemory.ToString() + ',' + \$_.TotalVisibleMemorySize.ToString() }",
-        ], runInShell: true);
-        final output = result.stdout.toString().trim();
-        // 出力例: "1234567,16777216"
-        final parts = output.split(',');
-        if (parts.length == 2) {
-          final free = double.tryParse(parts[0]);
-          final total = double.tryParse(parts[1]);
-          if (free != null && total != null && total > 0) {
-            _memoryTotalGB = total / 1024 / 1024; // KB→GB
-            _memoryUsedGB = (total - free) / 1024 / 1024;
-            _memoryPercent = ((total - free) / total * 100);
-            _addSample(_memoryHistory, _memoryPercent);
-          }
-        }
-      } else if (Platform.isLinux) {
+      if (Platform.isLinux) {
         final lines = await File('/proc/meminfo').readAsLines();
         double? total;
         double? available;

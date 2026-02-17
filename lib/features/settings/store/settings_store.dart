@@ -76,6 +76,10 @@ class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
     state = state.copyWith(sdMode: sdMode);
   }
 
+  void updateUiDebugMode(bool uiDebugMode) {
+    state = state.copyWith(uiDebugMode: uiDebugMode);
+  }
+
   void updateFromMetadata(Map<String, dynamic> metadata) {
     var newState = state;
     if (metadata.containsKey('width')) {
@@ -110,6 +114,9 @@ class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
     }
     if (metadata.containsKey('sd_mode')) {
       newState = newState.copyWith(sdMode: metadata['sd_mode']);
+    }
+    if (metadata.containsKey('ui_debug_mode')) {
+      newState = newState.copyWith(uiDebugMode: metadata['ui_debug_mode']);
     }
     // Add other fields as needed
     state = newState;

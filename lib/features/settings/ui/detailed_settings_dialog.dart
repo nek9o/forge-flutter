@@ -44,6 +44,19 @@ class DetailedSettingsDialog extends ConsumerWidget {
               },
             ),
           ),
+          const SizedBox(height: 16),
+          FLabel(
+            axis: Axis.horizontal,
+            label: Text(L.of(locale, 'ui_debug_mode')),
+            child: FSwitch(
+              value: settings.uiDebugMode,
+              onChange: (value) {
+                ref
+                    .read(generationSettingsProvider.notifier)
+                    .updateUiDebugMode(value);
+              },
+            ),
+          ),
         ],
       ),
       actions: [

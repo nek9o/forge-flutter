@@ -26,7 +26,7 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 - **コンセプト:** Forge Classic Neo 用の超軽量デスクトップクライアント
 - **目的:** 生成リソース確保のため、メモリ消費を最小限に抑える
 - **パフォーマンス:**
-  - **Forge Flutter Client:** 起動時 約55MB / 生成中 約160MB
+  - **Forge Flutter Client:** 起動直後 約55MB / 生成中 約66MB / 生成直後 約80MB
   - **ブラウザ版 WebUI:** 起動直後 約300MB以上
 
 ## 主要機能
@@ -39,7 +39,7 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 ## 技術スタック
 
 - **フレームワーク:** Flutter (Windows Native)
-- **UIデザイン:** Material 3 Expressive
+- **UIデザイン:** [Forui](https://forui.dev/) (ミニマリスティック Flutter UIライブラリ)
 - **フォント:**
   - **UI:** IBM Plex Sans JP
   - **エディタ:** Geist Mono

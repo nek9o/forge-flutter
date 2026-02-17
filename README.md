@@ -26,7 +26,7 @@ Forge Flutter Client is an ultra-lightweight desktop application for [Forge Clas
 - **Concept:** An ultra-lightweight desktop app for Forge Classic Neo
 - **Goal:** Minimize memory usage to free up resources for generation
 - **Performance:**
-  - **Forge Flutter Client:** ~55 MB (Startup) / ~160 MB (Processing)
+  - **Forge Flutter Client:** ~55 MB (Startup) / ~66 MB (Processing) / ~80 MB (Post-generation)
   - **Browser WebUI:** ~300 MB+ (Startup)
 
 ## Key Features
@@ -39,7 +39,7 @@ Forge Flutter Client is an ultra-lightweight desktop application for [Forge Clas
 ## Technical Stack
 
 - **Framework:** Flutter (Windows Native)
-- **UI Design:** Material 3 Expressive
+- **UI Design:** [Forui](https://forui.dev/) (Minimalistic Flutter UI Library)
 - **Fonts:**
   - **UI:** IBM Plex Sans JP
   - **Editor:** Geist Mono

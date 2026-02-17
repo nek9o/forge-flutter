@@ -9,7 +9,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/l10n.dart';
 import '../../settings/ui/lora_browser.dart';
 import '../models/prompt_tag.dart';
-import '../services/prompt_parser.dart';
 import '../store/prompt_store.dart';
 import 'hint_card.dart';
 
@@ -37,15 +36,6 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
     super.dispose();
   }
 
-  void _syncTextToTags() {
-    final text = _textController.text.trim();
-    if (text.isEmpty) return;
-
-    final tags = PromptParser.parse(text);
-    ref.read(promptTagsProvider.notifier).setTags(tags);
-    _textController.clear();
-  }
-
   void _syncTagsToText() {
     final tags = ref.read(promptTagsProvider);
     final text = tags.map((t) => t.formatted).join(', ');
@@ -68,7 +58,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
   Widget build(BuildContext context) {
     final tags = ref.watch(promptTagsProvider);
     final locale = ref.watch(localeProvider);
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
     final showHint = ref.watch(promptHintVisibleProvider);
 
     return Stack(
@@ -107,66 +97,30 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                     icon: PhosphorIcon(
                       PhosphorIcons.trash(),
                       size: 20,
-                      color: colorScheme.onSurfaceVariant,
+                      color: fTheme.colors.mutedForeground,
                     ),
                   ),
                 ],
               ),
             ),
             // テキスト入力エリア
-            Card(
-              margin: EdgeInsets.zero,
-              elevation: 0,
-              color: colorScheme.surfaceContainerHighest.withAlpha(100),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: colorScheme.outlineVariant.withAlpha(60),
-                ),
+            FTextField(
+              control: FTextFieldControl.managed(
+                controller: _textController,
+                onChange: (value) => _onTextChanged(value.text),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
-                child: TextField(
-                  controller: _textController,
-                  focusNode: _focusNode,
-                  onChanged: _onTextChanged,
-                  onSubmitted: (value) {
-                    if (value.trim().isNotEmpty) {
-                      _syncTextToTags();
-                    }
-                  },
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    filled: false,
-                    hintText: L.of(locale, 'prompt_hint'),
-                    hintStyle: TextStyle(
-                      color: colorScheme.onSurfaceVariant.withAlpha(120),
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                  style: GoogleFonts.geistMono(
-                    textStyle: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  maxLines: null,
-                ),
-              ),
+              focusNode: _focusNode,
+              hint: L.of(locale, 'prompt_hint'),
+              maxLines: null,
             ),
             const SizedBox(height: 12),
             // チップ表示エリア
             Expanded(
-              child: Card(
-                elevation: 0,
-                color: colorScheme.surface,
-                shape: RoundedRectangleBorder(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: fTheme.colors.background,
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: colorScheme.outlineVariant.withAlpha(50),
-                  ),
+                  border: Border.all(color: fTheme.colors.border.withAlpha(50)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
@@ -175,9 +129,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                           child: Text(
                             L.of(locale, 'prompt_no_chips'),
                             style: TextStyle(
-                              color: colorScheme.onSurfaceVariant.withAlpha(
-                                120,
-                              ),
+                              color: fTheme.colors.mutedForeground,
                               fontWeight: FontWeight.w300,
                             ),
                           ),
@@ -216,30 +168,28 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
   }
 
   Widget _buildPromptChip(BuildContext context, int index, PromptTag tag) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
 
     final isHighWeight = double.parse(tag.weight.toStringAsFixed(2)) > 1.0;
 
-    return Card(
-      elevation: 0,
-      color: tag.isLora
-          ? colorScheme.tertiaryContainer.withAlpha(80)
-          : (isHighWeight
-                ? colorScheme.primaryContainer.withAlpha(80)
-                : colorScheme.surfaceContainerHigh),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
+    return FTappable(
+      onPress: () => _showEditDialog(context, index, tag),
+      child: Container(
+        decoration: BoxDecoration(
           color: tag.isLora
-              ? colorScheme.tertiary.withAlpha(40)
+              ? fTheme.colors.primary.withAlpha(20)
               : (isHighWeight
-                    ? colorScheme.primary.withAlpha(30)
-                    : colorScheme.outlineVariant.withAlpha(30)),
+                    ? fTheme.colors.primary.withAlpha(15)
+                    : fTheme.colors.secondary),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: tag.isLora
+                ? fTheme.colors.primary.withAlpha(40)
+                : (isHighWeight
+                      ? fTheme.colors.primary.withAlpha(30)
+                      : fTheme.colors.border.withAlpha(30)),
+          ),
         ),
-      ),
-      child: InkWell(
-        onDoubleTap: () => _showEditDialog(context, index, tag),
-        borderRadius: BorderRadius.circular(12),
         child: Listener(
           onPointerSignal: (event) {
             if (event is PointerScrollEvent &&
@@ -254,26 +204,26 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
               _syncTagsToText();
             }
           },
-          child: ListTile(
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            leading: ReorderableDragStartListener(
-              index: index,
-              child: PhosphorIcon(
-                PhosphorIcons.dotsSixVertical(),
-                color: colorScheme.onSurfaceVariant.withAlpha(120),
-                size: 18,
-              ),
-            ),
-            title: Row(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
               children: [
+                ReorderableDragStartListener(
+                  index: index,
+                  child: PhosphorIcon(
+                    PhosphorIcons.dotsSixVertical(),
+                    color: fTheme.colors.mutedForeground,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 if (tag.isLora)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: PhosphorIcon(
                       PhosphorIcons.swatches(),
                       size: 16,
-                      color: colorScheme.onTertiaryContainer,
+                      color: fTheme.colors.primary,
                     ),
                   ),
                 Expanded(
@@ -281,10 +231,10 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                     tag.isLora ? 'LoRA: ${tag.text}' : tag.text,
                     style: GoogleFonts.geistMono(
                       color: tag.isLora
-                          ? colorScheme.onTertiaryContainer
+                          ? fTheme.colors.primary
                           : (isHighWeight
-                                ? colorScheme.onPrimaryContainer
-                                : colorScheme.onSurface),
+                                ? fTheme.colors.primaryForeground
+                                : fTheme.colors.foreground),
                       fontSize: 13,
                     ),
                   ),
@@ -295,7 +245,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
+                    color: fTheme.colors.muted,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -303,22 +253,23 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                     style: GoogleFonts.geistMono(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurfaceVariant,
+                      color: fTheme.colors.mutedForeground,
                     ),
                   ),
                 ),
+                const SizedBox(width: 4),
+                FTappable(
+                  onPress: () {
+                    ref.read(promptTagsProvider.notifier).removeTag(index);
+                    _syncTagsToText();
+                  },
+                  child: PhosphorIcon(
+                    PhosphorIcons.x(),
+                    size: 16,
+                    color: fTheme.colors.mutedForeground,
+                  ),
+                ),
               ],
-            ),
-            trailing: IconButton(
-              icon: PhosphorIcon(
-                PhosphorIcons.x(),
-                size: 16,
-                color: colorScheme.onSurfaceVariant.withAlpha(140),
-              ),
-              onPressed: () {
-                ref.read(promptTagsProvider.notifier).removeTag(index);
-                _syncTagsToText();
-              },
             ),
           ),
         ),
@@ -333,37 +284,44 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
       text: tag.weight.toStringAsFixed(2),
     );
 
-    showDialog(
+    showFDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        direction: Axis.vertical,
         title: Text(L.of(locale, 'edit_chip')),
-        content: Column(
+        body: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: textController,
-              decoration: InputDecoration(labelText: L.of(locale, 'prompt')),
-              style: GoogleFonts.geistMono(),
+            FLabel(
+              axis: Axis.vertical,
+              label: Text(L.of(locale, 'prompt')),
+              child: FTextField(
+                control: FTextFieldControl.managed(controller: textController),
+              ),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: weightController,
-              decoration: InputDecoration(
-                labelText: L.of(locale, 'weight'),
-                helperText: L.of(locale, 'weight_range_helper'),
+            FLabel(
+              axis: Axis.vertical,
+              label: Text(L.of(locale, 'weight')),
+              description: Text(L.of(locale, 'weight_range_helper')),
+              child: FTextField(
+                control: FTextFieldControl.managed(
+                  controller: weightController,
+                ),
               ),
-              keyboardType: TextInputType.number,
-              style: GoogleFonts.geistMono(),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(context).pop(),
             child: Text(L.of(locale, 'cancel')),
           ),
-          FilledButton(
-            onPressed: () {
+          FButton(
+            onPress: () {
               final newText = textController.text.trim();
               final newWeight =
                   double.tryParse(weightController.text) ?? tag.weight;
@@ -397,11 +355,13 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
     return FTooltip(
       tipBuilder: (context, controller) => Text(tooltip),
       child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        type: MaterialType.transparency,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(8),
+          hoverColor: FTheme.of(
+            context,
+          ).colors.foreground.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(6),
           child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
         ),
       ),

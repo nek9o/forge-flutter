@@ -147,10 +147,7 @@ class PreviewPane extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 20),
                                 Text(
-                                  L.of(
-                                    ref.read(localeProvider),
-                                    'no_image',
-                                  ),
+                                  L.of(ref.read(localeProvider), 'no_image'),
                                   style: TextStyle(
                                     color: fTheme.colors.mutedForeground,
                                     fontWeight: FontWeight.w300,
@@ -182,7 +179,7 @@ class PreviewPane extends ConsumerWidget {
             child: Column(
               children: [
                 if (previewState.status == GenerationStatus.generating)
-                  FProgress(value: previewState.progress),
+                  FProgress(),
                 const SizedBox(height: 8),
               ],
             ),
@@ -196,19 +193,13 @@ class PreviewPane extends ConsumerWidget {
                 onPress: previewState.status == GenerationStatus.generating
                     ? null
                     : () {
-                        ref
-                            .read(previewStoreProvider.notifier)
-                            .generateImage();
+                        ref.read(previewStoreProvider.notifier).generateImage();
                       },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (previewState.status == GenerationStatus.generating)
-                      const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: FProgress(),
-                      )
+                      const SizedBox(width: 20, height: 20, child: FProgress())
                     else
                       PhosphorIcon(PhosphorIcons.sparkle(), size: 20),
                     const SizedBox(width: 8),

@@ -21,7 +21,7 @@ class OssLicensePage extends ConsumerWidget {
         header: FHeader(
           title: Row(
             children: [
-              FTappable.animated(
+              FTappable(
                 onPress: () => Navigator.of(context).pop(),
                 child: PhosphorIcon(
                   PhosphorIcons.arrowLeft(),
@@ -52,7 +52,7 @@ class OssLicensePage extends ConsumerWidget {
           separatorBuilder: (context, index) => const FDivider(),
           itemBuilder: (context, index) {
             final package = _allLicenses[index];
-            return FTappable.animated(
+            return FTappable(
               onPress: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -246,7 +246,7 @@ class PackageLicensePage extends ConsumerWidget {
         header: FHeader(
           title: Row(
             children: [
-              FTappable.animated(
+              FTappable(
                 onPress: () => Navigator.of(context).pop(),
                 child: PhosphorIcon(
                   PhosphorIcons.arrowLeft(),

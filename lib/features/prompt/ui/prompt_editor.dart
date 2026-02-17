@@ -130,9 +130,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                 decoration: BoxDecoration(
                   color: fTheme.colors.background,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: fTheme.colors.border.withAlpha(50),
-                  ),
+                  border: Border.all(color: fTheme.colors.border.withAlpha(50)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
@@ -184,7 +182,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
 
     final isHighWeight = double.parse(tag.weight.toStringAsFixed(2)) > 1.0;
 
-    return FTappable.animated(
+    return FTappable(
       onPress: () => _showEditDialog(context, index, tag),
       child: Container(
         decoration: BoxDecoration(
@@ -270,7 +268,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                   ),
                 ),
                 const SizedBox(width: 4),
-                FTappable.animated(
+                FTappable(
                   onPress: () {
                     ref.read(promptTagsProvider.notifier).removeTag(index);
                     _syncTagsToText();
@@ -310,9 +308,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
               axis: Axis.vertical,
               label: Text(L.of(locale, 'prompt')),
               child: FTextField(
-                control: FTextFieldControl.managed(
-                  controller: textController,
-                ),
+                control: FTextFieldControl.managed(controller: textController),
               ),
             ),
             const SizedBox(height: 16),
@@ -368,7 +364,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
   }) {
     return FTooltip(
       tipBuilder: (context, controller) => Text(tooltip),
-      child: FTappable.animated(
+      child: FTappable(
         onPress: onPressed,
         child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
       ),

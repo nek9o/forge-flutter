@@ -126,7 +126,7 @@ class PromptPane extends ConsumerWidget {
   }) {
     return FTooltip(
       tipBuilder: (context, controller) => Text(tooltip),
-      child: FTappable.animated(
+      child: FTappable(
         onPress: onPressed,
         child: Padding(padding: const EdgeInsets.all(8.0), child: icon),
       ),

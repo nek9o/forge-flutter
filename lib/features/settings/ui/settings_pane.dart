@@ -272,14 +272,14 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               FButton.icon(
                                 onPress: () => ref
                                     .read(generationSettingsProvider.notifier)
                                     .updateSeed(-1),
                                 child: PhosphorIcon(PhosphorIcons.diceFive()),
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 6),
                               FButton.icon(
                                 onPress: () {
                                   final metadata = ref

@@ -89,9 +89,7 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
             decoration: BoxDecoration(
               color: fTheme.colors.background,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: fTheme.colors.border.withAlpha(50),
-              ),
+              border: Border.all(color: fTheme.colors.border.withAlpha(50)),
             ),
             child: Padding(
               padding: const EdgeInsets.all(8),
@@ -137,7 +135,7 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
     final fTheme = FTheme.of(context);
     final isHighWeight = double.parse(tag.weight.toStringAsFixed(2)) > 1.0;
 
-    return FTappable.animated(
+    return FTappable(
       onPress: () => _showEditDialog(context, index, tag),
       child: Container(
         decoration: BoxDecoration(
@@ -208,7 +206,7 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
                   ),
                 ),
                 const SizedBox(width: 4),
-                FTappable.animated(
+                FTappable(
                   onPress: () {
                     ref
                         .read(negativePromptTagsProvider.notifier)
@@ -250,9 +248,7 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
               axis: Axis.vertical,
               label: Text(L.of(locale, 'negative_prompt')),
               child: FTextField(
-                control: FTextFieldControl.managed(
-                  controller: textController,
-                ),
+                control: FTextFieldControl.managed(controller: textController),
               ),
             ),
             const SizedBox(height: 16),

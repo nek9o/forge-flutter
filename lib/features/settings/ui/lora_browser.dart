@@ -98,7 +98,9 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
                             PhosphorIcon(
                               PhosphorIcons.magnifyingGlass(),
                               size: 40,
-                              color: fTheme.colors.mutedForeground.withAlpha(80),
+                              color: fTheme.colors.mutedForeground.withAlpha(
+                                80,
+                              ),
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -153,7 +155,7 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
   Widget _buildLoraCard(BuildContext context, Lora lora) {
     final fTheme = FTheme.of(context);
 
-    return FTappable.animated(
+    return FTappable(
       onPress: () {
         _addLoraToPrompt(lora);
         Navigator.of(context).pop();

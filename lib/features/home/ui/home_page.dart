@@ -312,7 +312,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         height: 44,
         child: Align(
           alignment: Alignment.center,
-          child: FTappable.animated(
+          child: FTappable(
             onPress: onPressed,
             child: Container(
               width: 44,

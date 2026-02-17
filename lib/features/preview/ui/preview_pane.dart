@@ -10,26 +10,106 @@ import '../store/preview_store.dart';
 import 'png_info_pane.dart';
 import 'png_info_tab.dart';
 
-class PreviewPane extends ConsumerWidget {
+class PreviewPane extends ConsumerStatefulWidget {
   const PreviewPane({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PreviewPane> createState() => _PreviewPaneState();
+}
+
+class _PreviewPaneState extends ConsumerState<PreviewPane> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final previewState = ref.watch(previewStoreProvider);
     final locale = ref.watch(localeProvider);
     final fTheme = FTheme.of(context);
 
-    return FTabs(
+    return Column(
       children: [
-        FTabEntry(
-          label: Text(L.of(locale, 'generation_preview')),
-          child: _buildGenerationPreview(context, ref, previewState),
+        // カスタムタブヘッダー
+        Container(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: fTheme.colors.border)),
+          ),
+          child: Row(
+            children: [
+              _buildTabButton(
+                context,
+                index: 0,
+                label: L.of(locale, 'generation_preview'),
+                icon: PhosphorIcons.image(),
+              ),
+              _buildTabButton(
+                context,
+                index: 1,
+                label: L.of(locale, 'png_info_tab'),
+                icon: PhosphorIcons.info(),
+              ),
+            ],
+          ),
         ),
-        FTabEntry(
-          label: Text(L.of(locale, 'png_info_tab')),
-          child: const PngInfoTab(),
+        // コンテンツエリア
+        Expanded(
+          child: IndexedStack(
+            index: _selectedIndex,
+            children: [
+              _buildGenerationPreview(context, ref, previewState),
+              const PngInfoTab(),
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTabButton(
+    BuildContext context, {
+    required int index,
+    required String label,
+    required IconData icon,
+  }) {
+    final fTheme = FTheme.of(context);
+    final isSelected = _selectedIndex == index;
+
+    return Expanded(
+      child: FTappable(
+        onPress: () => setState(() => _selectedIndex = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isSelected ? fTheme.colors.primary : Colors.transparent,
+                width: 2,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected
+                    ? fTheme.colors.primary
+                    : fTheme.colors.mutedForeground,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected
+                      ? fTheme.colors.foreground
+                      : fTheme.colors.mutedForeground,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
@@ -17,103 +16,93 @@ class PromptPane extends ConsumerWidget {
     final fTheme = FTheme.of(context);
     final locale = ref.watch(localeProvider);
 
-    return ncm.ContextMenuRegion(
-      onItemSelected: (item) {},
-      menuItems: [
-        ncm.MenuItem(title: L.of(locale, 'clear')),
-        ncm.MenuItem(title: L.of(locale, 'select_all')),
-      ],
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: fTheme.colors.background,
-          border: Border(
-            left: BorderSide(color: fTheme.colors.border.withAlpha(40)),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: fTheme.colors.background,
+        border: Border(
+          left: BorderSide(color: fTheme.colors.border.withAlpha(40)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // プロンプトヘッダー
+          Row(
+            children: [
+              PhosphorIcon(
+                PhosphorIcons.textAa(),
+                size: 20,
+                color: fTheme.colors.primary,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                L.of(locale, 'prompt'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                  fontSize: 20,
+                  color: fTheme.colors.foreground,
+                ),
+              ),
+              const Spacer(),
+              _buildHeaderButton(
+                context,
+                tooltip: L.of(locale, 'hint'),
+                onPressed: () {
+                  final current = ref.read(promptHintVisibleProvider);
+                  ref.read(promptHintVisibleProvider.notifier).state = !current;
+                },
+                icon: PhosphorIcon(
+                  ref.watch(promptHintVisibleProvider)
+                      ? PhosphorIcons.lightbulbFilament(PhosphorIconsStyle.fill)
+                      : PhosphorIcons.lightbulbFilament(),
+                  size: 20,
+                  color: fTheme.colors.mutedForeground,
+                ),
+              ),
+            ],
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // プロンプトヘッダー
-            Row(
-              children: [
-                PhosphorIcon(
-                  PhosphorIcons.textAa(),
+          const SizedBox(height: 16),
+          const Expanded(flex: 3, child: PromptEditor()),
+          const SizedBox(height: 24),
+          // ネガティブプロンプトヘッダー
+          Row(
+            children: [
+              PhosphorIcon(
+                PhosphorIcons.prohibit(),
+                size: 20,
+                color: fTheme.colors.error.withAlpha(180),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                L.of(locale, 'negative_prompt'),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                  fontSize: 16,
+                  color: fTheme.colors.foreground,
+                ),
+              ),
+              const Spacer(),
+              _buildHeaderButton(
+                context,
+                tooltip: L.of(locale, 'clear'),
+                onPressed: () {
+                  ref.read(negativePromptTagsProvider.notifier).setTags([]);
+                  ref.read(negativePromptProvider.notifier).state = '';
+                },
+                icon: PhosphorIcon(
+                  PhosphorIcons.trash(),
                   size: 20,
-                  color: fTheme.colors.primary,
+                  color: fTheme.colors.mutedForeground,
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  L.of(locale, 'prompt'),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                    fontSize: 20,
-                    color: fTheme.colors.foreground,
-                  ),
-                ),
-                const Spacer(),
-                _buildHeaderButton(
-                  context,
-                  tooltip: L.of(locale, 'hint'),
-                  onPressed: () {
-                    final current = ref.read(promptHintVisibleProvider);
-                    ref.read(promptHintVisibleProvider.notifier).state =
-                        !current;
-                  },
-                  icon: PhosphorIcon(
-                    ref.watch(promptHintVisibleProvider)
-                        ? PhosphorIcons.lightbulbFilament(
-                            PhosphorIconsStyle.fill,
-                          )
-                        : PhosphorIcons.lightbulbFilament(),
-                    size: 20,
-                    color: fTheme.colors.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Expanded(flex: 3, child: PromptEditor()),
-            const SizedBox(height: 24),
-            // ネガティブプロンプトヘッダー
-            Row(
-              children: [
-                PhosphorIcon(
-                  PhosphorIcons.prohibit(),
-                  size: 20,
-                  color: fTheme.colors.error.withAlpha(180),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  L.of(locale, 'negative_prompt'),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                    fontSize: 16,
-                    color: fTheme.colors.foreground,
-                  ),
-                ),
-                const Spacer(),
-                _buildHeaderButton(
-                  context,
-                  tooltip: L.of(locale, 'clear'),
-                  onPressed: () {
-                    ref.read(negativePromptTagsProvider.notifier).setTags([]);
-                    ref.read(negativePromptProvider.notifier).state = '';
-                  },
-                  icon: PhosphorIcon(
-                    PhosphorIcons.trash(),
-                    size: 20,
-                    color: fTheme.colors.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Expanded(flex: 2, child: NegativePromptEditor()),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Expanded(flex: 2, child: NegativePromptEditor()),
+        ],
       ),
     );
   }

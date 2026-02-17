@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
@@ -160,12 +161,30 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              InteractiveViewer(
-                                minScale: 0.1,
-                                maxScale: 5.0,
-                                child: Image.memory(
-                                  base64Decode(previewState.base64Image!),
-                                  fit: BoxFit.contain,
+                              ncm.ContextMenuRegion(
+                                onItemSelected: (item) {
+                                  if (item.title ==
+                                      L.of(ref.read(localeProvider), 'save')) {
+                                    ref
+                                        .read(previewStoreProvider.notifier)
+                                        .saveImage();
+                                  }
+                                },
+                                menuItems: [
+                                  ncm.MenuItem(
+                                    title: L.of(
+                                      ref.read(localeProvider),
+                                      'save',
+                                    ),
+                                  ),
+                                ],
+                                child: InteractiveViewer(
+                                  minScale: 0.1,
+                                  maxScale: 5.0,
+                                  child: Image.memory(
+                                    base64Decode(previewState.base64Image!),
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
                               Positioned(
@@ -209,10 +228,25 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                     child: previewState.base64Image != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(16),
-                            child: Image.memory(
-                              base64Decode(previewState.base64Image!),
-                              fit: BoxFit.contain,
-                              gaplessPlayback: true,
+                            child: ncm.ContextMenuRegion(
+                              onItemSelected: (item) {
+                                if (item.title ==
+                                    L.of(ref.read(localeProvider), 'save')) {
+                                  ref
+                                      .read(previewStoreProvider.notifier)
+                                      .saveImage();
+                                }
+                              },
+                              menuItems: [
+                                ncm.MenuItem(
+                                  title: L.of(ref.read(localeProvider), 'save'),
+                                ),
+                              ],
+                              child: Image.memory(
+                                base64Decode(previewState.base64Image!),
+                                fit: BoxFit.contain,
+                                gaplessPlayback: true,
+                              ),
                             ),
                           )
                         : Center(

@@ -46,10 +46,6 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
-    final modelsAsyncValue = ref.watch(sdModelsProvider);
-    final selectedModel = ref.watch(selectedModelProvider);
-    final samplersAsyncValue = ref.watch(samplersProvider);
-    final schedulersAsyncValue = ref.watch(schedulersProvider);
     final settings = ref.watch(generationSettingsProvider);
     final fTheme = FTheme.of(context);
 
@@ -115,269 +111,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
               color: fTheme.colors.border,
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  FAccordion(
-                    control: FAccordionControl.lifted(
-                      expanded: (index) =>
-                          ref.watch(accordionExpandedProvider).contains(index),
-                      onChange: (index, expanded) {
-                        final current = ref.read(accordionExpandedProvider);
-                        final next = Set<int>.from(current);
-                        if (expanded) {
-                          next.add(index);
-                        } else {
-                          next.remove(index);
-                        }
-                        ref.read(accordionExpandedProvider.notifier).state =
-                            next;
-                      },
-                    ),
-                    children: [
-                      // モデル & サンプリング
-                      FAccordionItem(
-                        title: Text(L.of(locale, 'model_sampling')),
-                        child: Column(
-                          children: [
-                            modelsAsyncValue.when(
-                              data: (models) => _buildModelSelect(
-                                models,
-                                selectedModel,
-                                locale,
-                              ),
-                              loading: () => const FProgress(),
-                              error: (err, _) =>
-                                  _buildApiError(context, err, locale),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildSdModeSelect(settings),
-                            const SizedBox(height: 16),
-                            samplersAsyncValue.when(
-                              data: (samplers) => _buildSamplerSelect(
-                                samplers,
-                                settings,
-                                locale,
-                              ),
-                              loading: () => const FProgress(),
-                              error: (err, _) =>
-                                  _buildApiError(context, err, locale),
-                            ),
-                            const SizedBox(height: 16),
-                            schedulersAsyncValue.when(
-                              data: (schedulers) => _buildSchedulerSelect(
-                                schedulers,
-                                settings,
-                                locale,
-                              ),
-                              loading: () => const FProgress(),
-                              error: (err, _) =>
-                                  _buildApiError(context, err, locale),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // 生成パラメータ
-                      FAccordionItem(
-                        title: Text(L.of(locale, 'image_settings')),
-                        child: Column(
-                          children: [
-                            _buildNumberInput(
-                              context,
-                              ref: ref,
-                              label: L.of(locale, 'width'),
-                              value: settings.width.toDouble(),
-                              min: 64,
-                              max: 2048,
-                              onChanged: (v) => ref
-                                  .read(generationSettingsProvider.notifier)
-                                  .updateWidth(v.toInt()),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildNumberInput(
-                              context,
-                              ref: ref,
-                              label: L.of(locale, 'height'),
-                              value: settings.height.toDouble(),
-                              min: 64,
-                              max: 2048,
-                              onChanged: (v) => ref
-                                  .read(generationSettingsProvider.notifier)
-                                  .updateHeight(v.toInt()),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildNumberInput(
-                              context,
-                              ref: ref,
-                              label: L.of(locale, 'sampling_steps'),
-                              value: settings.steps.toDouble(),
-                              min: 1,
-                              max: 100,
-                              onChanged: (v) => ref
-                                  .read(generationSettingsProvider.notifier)
-                                  .updateSteps(v.toInt()),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildNumberInput(
-                              context,
-                              ref: ref,
-                              label: L.of(locale, 'cfg_scale'),
-                              value: settings.cfgScale,
-                              min: 1,
-                              max: 30,
-                              onChanged: (v) => ref
-                                  .read(generationSettingsProvider.notifier)
-                                  .updateCfgScale(v),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // バッチ設定
-                      FAccordionItem(
-                        title: Text(L.of(locale, 'batch_size')),
-                        child: Column(
-                          children: [
-                            _buildNumberInput(
-                              context,
-                              ref: ref,
-                              label: L.of(locale, 'batch_size'),
-                              value: settings.batchSize.toDouble(),
-                              min: 1,
-                              max: 8,
-                              onChanged: (v) => ref
-                                  .read(generationSettingsProvider.notifier)
-                                  .updateBatchSize(v.toInt()),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildNumberInput(
-                              context,
-                              ref: ref,
-                              label: L.of(locale, 'batch_count'),
-                              value: settings.batchCount.toDouble(),
-                              min: 1,
-                              max: 100,
-                              onChanged: (v) => ref
-                                  .read(generationSettingsProvider.notifier)
-                                  .updateBatchCount(v.toInt()),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // シード
-                      FAccordionItem(
-                        title: Text(L.of(locale, 'seed')),
-                        child: FLabel(
-                          axis: Axis.vertical,
-                          label: Text(L.of(locale, 'seed')),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: ncm.ContextMenuRegion(
-                                  onItemSelected: (item) async {
-                                    if (item.title == L.of(locale, 'paste')) {
-                                      final data = await Clipboard.getData(
-                                        'text/plain',
-                                      );
-                                      if (data?.text != null) {
-                                        _seedController.text = data!.text!;
-                                        final seed = int.tryParse(data.text!);
-                                        if (seed != null) {
-                                          ref
-                                              .read(
-                                                generationSettingsProvider
-                                                    .notifier,
-                                              )
-                                              .updateSeed(seed);
-                                        }
-                                      }
-                                    } else if (item.title ==
-                                        L.of(locale, 'clear')) {
-                                      _seedController.clear();
-                                    } else if (item.title ==
-                                        L.of(locale, 'select_all')) {
-                                      _seedController.selection = TextSelection(
-                                        baseOffset: 0,
-                                        extentOffset:
-                                            _seedController.text.length,
-                                      );
-                                      _seedFocusNode.requestFocus();
-                                    }
-                                  },
-                                  menuItems: [
-                                    ncm.MenuItem(title: L.of(locale, 'paste')),
-                                    ncm.MenuItem(title: L.of(locale, 'clear')),
-                                    ncm.MenuItem(
-                                      title: L.of(locale, 'select_all'),
-                                    ),
-                                  ],
-                                  child: FTextField(
-                                    focusNode: _seedFocusNode,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(
-                                        RegExp(r'[0-9-]'),
-                                      ),
-                                    ],
-                                    contextMenuBuilder:
-                                        (context, editableTextState) =>
-                                            const SizedBox.shrink(),
-                                    control: FTextFieldControl.managed(
-                                      controller: _seedController,
-                                      onChange: (value) {
-                                        final seed = int.tryParse(value.text);
-                                        if (seed != null) {
-                                          ref
-                                              .read(
-                                                generationSettingsProvider
-                                                    .notifier,
-                                              )
-                                              .updateSeed(seed);
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              FButton.icon(
-                                onPress: () => ref
-                                    .read(generationSettingsProvider.notifier)
-                                    .updateSeed(-1),
-                                child: PhosphorIcon(PhosphorIcons.diceFive()),
-                              ),
-                              const SizedBox(width: 6),
-                              FButton.icon(
-                                onPress: () {
-                                  final metadata = ref
-                                      .read(previewStoreProvider)
-                                      .metadata;
-                                  if (metadata != null &&
-                                      metadata.containsKey('seed')) {
-                                    final seed = metadata['seed'];
-                                    if (seed is int) {
-                                      ref
-                                          .read(
-                                            generationSettingsProvider.notifier,
-                                          )
-                                          .updateSeed(seed);
-                                    }
-                                  }
-                                },
-                                child: PhosphorIcon(PhosphorIcons.recycle()),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+          Expanded(child: _buildMainContent(context, locale, settings)),
           // システムモニター
           if (widget.showMonitor) ...[
             Padding(
@@ -598,29 +332,302 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     );
   }
 
-  Widget _buildApiError(BuildContext context, Object err, AppLocale locale) {
-    final message = err.toString();
-    final isConnectionError = _looksLikeApiConnectionFailure(message);
-
-    if (isConnectionError) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _scheduleApiConnectionErrorDialog(context);
-      });
-    }
-
-    if (isConnectionError) {
-      if (_apiDialogPending) {
-        return const FProgress();
-      }
-      return FButton(
-        variant: FButtonVariant.outline,
-        onPress: () => _showApiConnectionErrorDialog(context),
-        child: Text(L.of(locale, 'api_connection_error_title')),
+  Widget _buildMainContent(
+    BuildContext context,
+    AppLocale locale,
+    GenerationSettings settings,
+  ) {
+    if (ref.watch(isReconnectingProvider) || _apiDialogPending) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [FProgress(), SizedBox(height: 16)],
+          ),
+        ),
       );
     }
 
-    return Text('${L.of(locale, 'error')}: $err');
+    if (_hasOngoingApiConnectionError()) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PhosphorIcon(
+                PhosphorIcons.cloudSlash(),
+                size: 48,
+                color: FTheme.of(context).colors.mutedForeground,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                L.of(locale, 'api_connection_error_title'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                L.of(locale, 'api_connection_error_body'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: FTheme.of(context).colors.mutedForeground,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 24),
+              FButton(
+                onPress: () =>
+                    ref.read(settingsStoreProvider.notifier).reconnect(),
+                child: Text(L.of(locale, 'reconnect')),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final modelsAsyncValue = ref.watch(sdModelsProvider);
+    final selectedModel = ref.watch(selectedModelProvider);
+    final samplersAsyncValue = ref.watch(samplersProvider);
+    final schedulersAsyncValue = ref.watch(schedulersProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FAccordion(
+            control: FAccordionControl.lifted(
+              expanded: (index) =>
+                  ref.watch(accordionExpandedProvider).contains(index),
+              onChange: (index, expanded) {
+                final current = ref.read(accordionExpandedProvider);
+                final next = Set<int>.from(current);
+                if (expanded) {
+                  next.add(index);
+                } else {
+                  next.remove(index);
+                }
+                ref.read(accordionExpandedProvider.notifier).state = next;
+              },
+            ),
+            children: [
+              // モデル & サンプリング
+              FAccordionItem(
+                title: Text(L.of(locale, 'model_sampling')),
+                child: Column(
+                  children: [
+                    modelsAsyncValue.when(
+                      data: (models) =>
+                          _buildModelSelect(models, selectedModel, locale),
+                      loading: () => const SizedBox.shrink(),
+                      error: (err, _) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSdModeSelect(settings),
+                    const SizedBox(height: 16),
+                    samplersAsyncValue.when(
+                      data: (samplers) =>
+                          _buildSamplerSelect(samplers, settings, locale),
+                      loading: () => const SizedBox.shrink(),
+                      error: (err, _) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 16),
+                    schedulersAsyncValue.when(
+                      data: (schedulers) =>
+                          _buildSchedulerSelect(schedulers, settings, locale),
+                      loading: () => const SizedBox.shrink(),
+                      error: (err, _) => const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
+              // 生成パラメータ
+              FAccordionItem(
+                title: Text(L.of(locale, 'image_settings')),
+                child: Column(
+                  children: [
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'width'),
+                      value: settings.width.toDouble(),
+                      min: 64,
+                      max: 2048,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateWidth(v.toInt()),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'height'),
+                      value: settings.height.toDouble(),
+                      min: 64,
+                      max: 2048,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateHeight(v.toInt()),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'sampling_steps'),
+                      value: settings.steps.toDouble(),
+                      min: 1,
+                      max: 100,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateSteps(v.toInt()),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'cfg_scale'),
+                      value: settings.cfgScale,
+                      min: 1,
+                      max: 30,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateCfgScale(v),
+                    ),
+                  ],
+                ),
+              ),
+              // バッチ設定
+              FAccordionItem(
+                title: Text(L.of(locale, 'batch_size')),
+                child: Column(
+                  children: [
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'batch_size'),
+                      value: settings.batchSize.toDouble(),
+                      min: 1,
+                      max: 8,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateBatchSize(v.toInt()),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'batch_count'),
+                      value: settings.batchCount.toDouble(),
+                      min: 1,
+                      max: 100,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateBatchCount(v.toInt()),
+                    ),
+                  ],
+                ),
+              ),
+              // シード
+              FAccordionItem(
+                title: Text(L.of(locale, 'seed')),
+                child: FLabel(
+                  axis: Axis.vertical,
+                  label: Text(L.of(locale, 'seed')),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ncm.ContextMenuRegion(
+                          onItemSelected: (item) async {
+                            if (item.title == L.of(locale, 'paste')) {
+                              final data = await Clipboard.getData(
+                                'text/plain',
+                              );
+                              if (data?.text != null) {
+                                _seedController.text = data!.text!;
+                                final seed = int.tryParse(data.text!);
+                                if (seed != null) {
+                                  ref
+                                      .read(generationSettingsProvider.notifier)
+                                      .updateSeed(seed);
+                                }
+                              }
+                            } else if (item.title == L.of(locale, 'clear')) {
+                              _seedController.clear();
+                            } else if (item.title ==
+                                L.of(locale, 'select_all')) {
+                              _seedController.selection = TextSelection(
+                                baseOffset: 0,
+                                extentOffset: _seedController.text.length,
+                              );
+                              _seedFocusNode.requestFocus();
+                            }
+                          },
+                          menuItems: [
+                            ncm.MenuItem(title: L.of(locale, 'paste')),
+                            ncm.MenuItem(title: L.of(locale, 'clear')),
+                            ncm.MenuItem(title: L.of(locale, 'select_all')),
+                          ],
+                          child: FTextField(
+                            focusNode: _seedFocusNode,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9-]'),
+                              ),
+                            ],
+                            contextMenuBuilder: (context, editableTextState) =>
+                                const SizedBox.shrink(),
+                            control: FTextFieldControl.managed(
+                              controller: _seedController,
+                              onChange: (value) {
+                                final seed = int.tryParse(value.text);
+                                if (seed != null) {
+                                  ref
+                                      .read(generationSettingsProvider.notifier)
+                                      .updateSeed(seed);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      FButton.icon(
+                        onPress: () => ref
+                            .read(generationSettingsProvider.notifier)
+                            .updateSeed(-1),
+                        child: PhosphorIcon(PhosphorIcons.diceFive()),
+                      ),
+                      const SizedBox(width: 6),
+                      FButton.icon(
+                        onPress: () {
+                          final metadata = ref
+                              .read(previewStoreProvider)
+                              .metadata;
+                          if (metadata != null &&
+                              metadata.containsKey('seed')) {
+                            final seed = metadata['seed'];
+                            if (seed is int) {
+                              ref
+                                  .read(generationSettingsProvider.notifier)
+                                  .updateSeed(seed);
+                            }
+                          }
+                        },
+                        child: PhosphorIcon(PhosphorIcons.recycle()),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   bool _looksLikeApiConnectionFailure(String message) {

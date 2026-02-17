@@ -58,19 +58,27 @@ class GenerationSettings {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = {
       'sampler_name': samplerName,
       'width': width,
       'height': height,
       'steps': steps,
       'cfg_scale': cfgScale,
       'seed': seed,
-      'scheduler': scheduler,
       'save_images': saveImages,
       'batch_size': batchSize,
       'batch_count': batchCount,
       'sd_mode': sdMode,
       'ui_debug_mode': uiDebugMode,
     };
+
+    final schedulerValue = scheduler;
+    if (schedulerValue != null &&
+        schedulerValue.isNotEmpty &&
+        schedulerValue != 'Automatic') {
+      map['scheduler'] = schedulerValue;
+    }
+
+    return map;
   }
 }

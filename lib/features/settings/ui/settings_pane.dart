@@ -504,7 +504,9 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
   ) {
     final Map<String, String?> items = {
       'Automatic': 'Automatic',
-      for (var scheduler in schedulers) scheduler.label: scheduler.name,
+      for (var scheduler in schedulers)
+        if (scheduler.label != 'Automatic' && scheduler.name != 'Automatic')
+          scheduler.label: scheduler.name,
     };
 
     // 'Automatic'は常に存在するので、itemsは空になることはない

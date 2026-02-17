@@ -188,7 +188,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
 
     return FSelect<String>.rich(
       key: ValueKey('sd_mode_${settings.sdMode}'),
-      label: const Text('SD Mode'),
+      label: Text(L.of(ref.watch(localeProvider), 'sd_mode')),
       control: FSelectControl.managed(
         initial: initial,
         onChange: (value) {
@@ -743,7 +743,7 @@ class _ApiConnectionErrorDialog extends ConsumerStatefulWidget {
 class _ApiConnectionErrorDialogState
     extends ConsumerState<_ApiConnectionErrorDialog> {
   bool _isReconnecting = false;
-  final _dialogLocale = AppLocale.en;
+  AppLocale get _dialogLocale => ref.watch(localeProvider);
 
   Future<void> _reconnect() async {
     setState(() {

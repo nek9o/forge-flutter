@@ -382,7 +382,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
   }
 
   void _showApiConnectionErrorDialog(BuildContext context) {
-    const dialogLocale = AppLocale.en;
+    final dialogLocale = ref.read(localeProvider);
 
     showFDialog(
       context: context,

@@ -28,7 +28,7 @@ class PngInfoPane extends ConsumerWidget {
     if (effectiveMetadata == null) {
       return Center(
         child: Text(
-          "No PNG Info available",
+          L.of(locale, 'no_png_info'),
           style: TextStyle(
             color: fTheme.colors.mutedForeground,
             fontWeight: FontWeight.w300,
@@ -55,7 +55,7 @@ class PngInfoPane extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'PNG Info',
+                      L.of(locale, 'png_info'),
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
@@ -89,7 +89,7 @@ class PngInfoPane extends ConsumerWidget {
             const SizedBox(height: 12),
             if (effectiveMetadata.containsKey('prompt')) ...[
               Text(
-                'Prompt',
+                L.of(locale, 'prompt'),
                 style: TextStyle(
                   color: fTheme.colors.mutedForeground,
                   letterSpacing: 0.8,
@@ -109,7 +109,7 @@ class PngInfoPane extends ConsumerWidget {
             if (effectiveMetadata.containsKey('negative_prompt')) ...[
               const SizedBox(height: 16),
               Text(
-                'Negative Prompt',
+                L.of(locale, 'negative_prompt'),
                 style: TextStyle(
                   color: fTheme.colors.mutedForeground,
                   letterSpacing: 0.8,
@@ -128,7 +128,7 @@ class PngInfoPane extends ConsumerWidget {
             ],
             const SizedBox(height: 16),
             Text(
-              'Settings',
+              L.of(locale, 'settings'),
               style: TextStyle(
                 color: fTheme.colors.mutedForeground,
                 letterSpacing: 0.8,

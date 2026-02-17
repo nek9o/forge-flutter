@@ -60,3 +60,9 @@ final_analysis*.txt
 
 # testディレクトリ全体を無視
 test/
+
+# 開発用スクリプトと一時ファイル
+*.py
+*_result.txt
+temp_diff.txt
+.env

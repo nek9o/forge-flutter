@@ -6,6 +6,7 @@ import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/providers.dart';
 import '../../preview/store/preview_store.dart';
 import '../models/generation_settings.dart';
 import '../store/settings_store.dart';
@@ -23,6 +24,9 @@ class SettingsPane extends ConsumerStatefulWidget {
 class _SettingsPaneState extends ConsumerState<SettingsPane> {
   late TextEditingController _seedController;
   late FocusNode _seedFocusNode;
+  bool _apiDialogOpen = false;
+  bool _apiDialogPending = false;
+  DateTime? _lastApiDialogAt;
 
   @override
   void initState() {
@@ -60,6 +64,16 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         }
       });
     }
+
+    // 手動再接続完了時の処理
+    ref.listen(isReconnectingProvider, (prev, next) {
+      if (prev == true && next == false) {
+        if (_hasOngoingApiConnectionError()) {
+          // すでに1.5秒待機済みなので即座にダイアログを表示
+          _showApiConnectionErrorDialog(context, immediate: true);
+        }
+      }
+    });
 
     return Container(
       width: 280,
@@ -136,7 +150,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                                 locale,
                               ),
                               loading: () => const FProgress(),
-                              error: (err, _) => Text('Error: $err'),
+                              error: (err, _) =>
+                                  _buildApiError(context, err, locale),
                             ),
                             const SizedBox(height: 16),
                             _buildSdModeSelect(settings),
@@ -148,7 +163,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                                 locale,
                               ),
                               loading: () => const FProgress(),
-                              error: (err, _) => Text('Error: $err'),
+                              error: (err, _) =>
+                                  _buildApiError(context, err, locale),
                             ),
                             const SizedBox(height: 16),
                             schedulersAsyncValue.when(
@@ -158,7 +174,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                                 locale,
                               ),
                               loading: () => const FProgress(),
-                              error: (err, _) => Text('Error: $err'),
+                              error: (err, _) =>
+                                  _buildApiError(context, err, locale),
                             ),
                           ],
                         ),
@@ -390,6 +407,10 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
       for (var model in models) model.title: model.modelName,
     };
 
+    if (ref.watch(isReconnectingProvider)) {
+      return const Center(child: FProgress());
+    }
+
     if (items.isEmpty) {
       return Text(L.of(locale, 'loading'));
     }
@@ -463,6 +484,10 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
       for (var sampler in samplers) sampler.name: sampler.name,
     };
 
+    if (ref.watch(isReconnectingProvider)) {
+      return const Center(child: FProgress());
+    }
+
     if (items.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -508,6 +533,10 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         if (scheduler.label != 'Automatic' && scheduler.name != 'Automatic')
           scheduler.label: scheduler.name,
     };
+
+    if (ref.watch(isReconnectingProvider)) {
+      return const Center(child: FProgress());
+    }
 
     // 'Automatic'は常に存在するので、itemsは空になることはない
     final initial = items.values.contains(settings.scheduler ?? 'Automatic')
@@ -566,6 +595,238 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         onChanged: onChanged,
         isDecimal: label.contains('CFG') || label.contains('Scale'),
       ),
+    );
+  }
+
+  Widget _buildApiError(BuildContext context, Object err, AppLocale locale) {
+    final message = err.toString();
+    final isConnectionError = _looksLikeApiConnectionFailure(message);
+
+    if (isConnectionError) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _scheduleApiConnectionErrorDialog(context);
+      });
+    }
+
+    if (isConnectionError) {
+      if (_apiDialogPending) {
+        return const FProgress();
+      }
+      return FButton(
+        variant: FButtonVariant.outline,
+        onPress: () => _showApiConnectionErrorDialog(context),
+        child: Text(L.of(locale, 'api_connection_error_title')),
+      );
+    }
+
+    return Text('${L.of(locale, 'error')}: $err');
+  }
+
+  bool _looksLikeApiConnectionFailure(String message) {
+    if (ref.read(isReconnectingProvider)) return false;
+    final m = message.toLowerCase();
+    return m.contains('failed to connect') ||
+        m.contains('socketexception') ||
+        m.contains('connection refused') ||
+        m.contains('errno = 111') ||
+        m.contains('errno = 61') ||
+        m.contains('os error');
+  }
+
+  void _showApiConnectionErrorDialog(
+    BuildContext context, {
+    bool immediate = false,
+  }) {
+    _scheduleApiConnectionErrorDialog(context, immediate: immediate);
+  }
+
+  void _scheduleApiConnectionErrorDialog(
+    BuildContext context, {
+    bool immediate = false,
+  }) {
+    if (_apiDialogOpen) return;
+    if (_apiDialogPending) return;
+    final now = DateTime.now();
+    final last = _lastApiDialogAt;
+
+    // throttling
+    if (!immediate &&
+        last != null &&
+        now.difference(last).inMilliseconds < 1500) {
+      return;
+    }
+    _lastApiDialogAt = now;
+
+    if (immediate) {
+      // 即座に表示
+      _apiDialogOpen = true;
+      showFDialog(
+        context: context,
+        builder: (context, style, animation) =>
+            _ApiConnectionErrorDialog(style: style, animation: animation),
+      ).then((_) {
+        if (mounted) _apiDialogOpen = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _apiDialogPending = true;
+    });
+
+    () async {
+      // 背景エラーの場合は1.5秒待機
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      if (!mounted) return;
+
+      setState(() {
+        _apiDialogPending = false;
+      });
+
+      if (_apiDialogOpen) return;
+      if (!_hasOngoingApiConnectionError()) return;
+
+      _apiDialogOpen = true;
+      await showFDialog(
+        context: context,
+        builder: (context, style, animation) =>
+            _ApiConnectionErrorDialog(style: style, animation: animation),
+      );
+      if (!mounted) return;
+      _apiDialogOpen = false;
+    }();
+  }
+
+  bool _hasOngoingApiConnectionError() {
+    final values = [
+      ref.read(sdModelsProvider),
+      ref.read(samplersProvider),
+      ref.read(schedulersProvider),
+      ref.read(lorasProvider),
+    ];
+
+    for (final v in values) {
+      if (v.isLoading) return false;
+      if (v.hasError) {
+        final err = v.error;
+        if (err != null && _looksLikeApiConnectionFailure(err.toString())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
+
+class _ApiConnectionErrorDialog extends ConsumerStatefulWidget {
+  final FDialogStyle style;
+  final Animation<double> animation;
+
+  const _ApiConnectionErrorDialog({
+    required this.style,
+    required this.animation,
+  });
+
+  @override
+  ConsumerState<_ApiConnectionErrorDialog> createState() =>
+      _ApiConnectionErrorDialogState();
+}
+
+class _ApiConnectionErrorDialogState
+    extends ConsumerState<_ApiConnectionErrorDialog> {
+  bool _isReconnecting = false;
+  final _dialogLocale = AppLocale.en;
+
+  Future<void> _reconnect() async {
+    setState(() {
+      _isReconnecting = true;
+    });
+
+    await ref.read(settingsStoreProvider.notifier).reconnect();
+
+    if (!mounted) return;
+
+    if (!_hasOngoingError()) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {
+        _isReconnecting = false;
+      });
+    }
+  }
+
+  bool _hasOngoingError() {
+    final values = [
+      ref.read(sdModelsProvider),
+      ref.read(samplersProvider),
+      ref.read(schedulersProvider),
+      ref.read(lorasProvider),
+    ];
+
+    for (final v in values) {
+      if (v.hasError) return true;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FDialog(
+      style: widget.style,
+      animation: widget.animation,
+      direction: Axis.vertical,
+      title: Text(L.of(_dialogLocale, 'api_connection_error_title')),
+      body: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 520, maxWidth: 720),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_isReconnecting) ...[
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: FProgress(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(child: Text(L.of(_dialogLocale, 'reconnecting'))),
+            ] else ...[
+              Text(L.of(_dialogLocale, 'api_connection_error_body')),
+              const SizedBox(height: 12),
+              Text(L.of(_dialogLocale, 'api_connection_error_body2')),
+              const SizedBox(height: 16),
+              FLabel(
+                axis: Axis.vertical,
+                label: Text(L.of(_dialogLocale, 'api_url')),
+                child: FTextField(
+                  control: FTextFieldControl.managed(
+                    initial: TextEditingValue(text: ref.read(apiUrlProvider)),
+                    onChange: (value) {
+                      ref.read(apiUrlProvider.notifier).state = value.text;
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        if (!_isReconnecting) ...[
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(context).pop(),
+            child: Text(L.of(_dialogLocale, 'close')),
+          ),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: _reconnect,
+            child: Text(L.of(_dialogLocale, 'reconnect')),
+          ),
+        ],
+      ],
     );
   }
 }

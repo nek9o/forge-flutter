@@ -7,6 +7,7 @@ import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/providers.dart';
 import '../store/preview_store.dart';
 import 'png_info_pane.dart';
 import 'png_info_tab.dart';
@@ -20,12 +21,25 @@ class PreviewPane extends ConsumerStatefulWidget {
 
 class _PreviewPaneState extends ConsumerState<PreviewPane> {
   int _selectedIndex = 0;
+  String? _lastShownConnectionError;
 
   @override
   Widget build(BuildContext context) {
     final previewState = ref.watch(previewStoreProvider);
     final locale = ref.watch(localeProvider);
     final fTheme = FTheme.of(context);
+
+    final errorMessage = previewState.errorMessage;
+    final isConnectionError =
+        errorMessage != null && _looksLikeApiConnectionFailure(errorMessage);
+
+    if (isConnectionError && _lastShownConnectionError != errorMessage) {
+      _lastShownConnectionError = errorMessage;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _showApiConnectionErrorDialog(context);
+      });
+    }
 
     return Column(
       children: [
@@ -120,6 +134,9 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
     PreviewState previewState,
   ) {
     final fTheme = FTheme.of(context);
+    final errorMessage = previewState.errorMessage;
+    final isConnectionError =
+        errorMessage != null && _looksLikeApiConnectionFailure(errorMessage);
 
     return ColoredBox(
       color: fTheme.colors.background,
@@ -277,7 +294,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
             ),
           ),
           // エラー表示
-          if (previewState.errorMessage != null)
+          if (previewState.errorMessage != null && !isConnectionError)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: FAlert(
@@ -348,6 +365,78 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
           const Expanded(
             flex: 2,
             child: SingleChildScrollView(child: PngInfoPane()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _looksLikeApiConnectionFailure(String message) {
+    final m = message.toLowerCase();
+    return m.contains('failed to connect') ||
+        m.contains('socketexception') ||
+        m.contains('connection refused') ||
+        m.contains('errno = 111') ||
+        m.contains('errno = 61') ||
+        m.contains('os error');
+  }
+
+  void _showApiConnectionErrorDialog(BuildContext context) {
+    const dialogLocale = AppLocale.en;
+
+    showFDialog(
+      context: context,
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        direction: Axis.vertical,
+        title: Text(L.of(dialogLocale, 'api_connection_error_title')),
+        body: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 520, maxWidth: 720),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(L.of(dialogLocale, 'api_connection_error_body')),
+              const SizedBox(height: 12),
+              Text(L.of(dialogLocale, 'api_connection_error_body2')),
+              const SizedBox(height: 16),
+              FLabel(
+                axis: Axis.vertical,
+                label: Text(L.of(dialogLocale, 'api_url')),
+                child: FTextField(
+                  control: FTextFieldControl.managed(
+                    initial: TextEditingValue(text: ref.read(apiUrlProvider)),
+                    onChange: (value) {
+                      ref.read(apiUrlProvider.notifier).state = value.text;
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(context).pop(),
+            child: Text(L.of(dialogLocale, 'close')),
+          ),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () {
+              Navigator.of(context).pop();
+              ref.invalidate(previewStoreProvider);
+              ref.read(previewStoreProvider.notifier).generateImage();
+            },
+            child: Text(L.of(dialogLocale, 'reconnect')),
+          ),
+          FButton(
+            onPress: () {
+              Navigator.of(context).pop();
+              ref.read(previewStoreProvider.notifier).generateImage();
+            },
+            child: Text(L.of(dialogLocale, 'retry')),
           ),
         ],
       ),

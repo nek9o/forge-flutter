@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../core/l10n.dart';
 import '../../preview/ui/preview_pane.dart';
 import '../../prompt/ui/prompt_pane.dart';
+import '../../settings/store/settings_store.dart';
 import '../../settings/ui/detailed_settings_dialog.dart';
 import '../../settings/ui/oss_license_page.dart';
 import '../../settings/ui/settings_pane.dart';
@@ -124,6 +125,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   _settingsExpanded = true;
                                 }
                               });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          // 再接続ボタン
+                          _buildToolbarButton(
+                            context,
+                            icon: PhosphorIcons.arrowClockwise(),
+                            isActive: false,
+                            tooltip: L.of(locale, 'reconnect'),
+                            onPressed: () {
+                              ref
+                                  .read(settingsStoreProvider.notifier)
+                                  .reconnect();
                             },
                           ),
                           const SizedBox(height: 8),

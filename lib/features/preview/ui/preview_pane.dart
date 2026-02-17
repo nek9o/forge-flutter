@@ -292,8 +292,26 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Column(
               children: [
-                if (previewState.status == GenerationStatus.generating)
-                  FProgress(),
+                if (previewState.status == GenerationStatus.generating) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: previewState.progress,
+                      backgroundColor: fTheme.colors.muted,
+                      valueColor: AlwaysStoppedAnimation(fTheme.colors.primary),
+                      minHeight: 6,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${(previewState.progress * 100).toInt()}%',
+                    style: TextStyle(
+                      color: fTheme.colors.mutedForeground,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
               ],
             ),
@@ -312,14 +330,13 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (previewState.status == GenerationStatus.generating)
-                      const SizedBox(width: 20, height: 20, child: FProgress())
-                    else
+                    if (previewState.status != GenerationStatus.generating) ...[
                       PhosphorIcon(PhosphorIcons.sparkle(), size: 20),
-                    const SizedBox(width: 8),
+                      const SizedBox(width: 8),
+                    ],
                     Text(
                       previewState.status == GenerationStatus.generating
-                          ? '${L.of(ref.read(localeProvider), 'generate')}...'
+                          ? L.of(ref.read(localeProvider), 'generating')
                           : L.of(ref.read(localeProvider), 'generate'),
                     ),
                   ],

@@ -2,19 +2,22 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../core/l10n.dart';
+
 /// システムリソースモニター
 /// CPU, メモリ, GPU, VRAM の使用率をリアルタイムで表示
-class SystemMonitor extends StatefulWidget {
+class SystemMonitor extends ConsumerStatefulWidget {
   const SystemMonitor({super.key});
 
   @override
-  State<SystemMonitor> createState() => _SystemMonitorState();
+  ConsumerState<SystemMonitor> createState() => _SystemMonitorState();
 }
 
-class _SystemMonitorState extends State<SystemMonitor> {
+class _SystemMonitorState extends ConsumerState<SystemMonitor> {
   Timer? _timer;
   static const int _maxSamples = 300; // 約5分分 (1秒間隔)
 
@@ -209,6 +212,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
   @override
   Widget build(BuildContext context) {
     final fTheme = FTheme.of(context);
+    final locale = ref.watch(localeProvider);
 
     if (!_initialized) {
       return const Padding(
@@ -226,7 +230,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
           _buildMetricRow(
             context,
             icon: PhosphorIcons.cpu(),
-            label: 'CPU',
+            label: L.of(locale, 'cpu'),
             value: '${_cpuPercent.toStringAsFixed(0)}%',
             percent: _cpuPercent,
             history: _cpuHistory,
@@ -237,7 +241,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
           _buildMetricRow(
             context,
             icon: PhosphorIcons.memory(),
-            label: 'RAM',
+            label: L.of(locale, 'ram'),
             value:
                 '${_memoryUsedGB.toStringAsFixed(1)} / ${_memoryTotalGB.toStringAsFixed(0)} GB',
             percent: _memoryPercent,
@@ -250,7 +254,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
             _buildMetricRow(
               context,
               icon: PhosphorIcons.circuitry(),
-              label: 'GPU',
+              label: L.of(locale, 'gpu'),
               value: '${_gpuPercent.toStringAsFixed(0)}%',
               percent: _gpuPercent,
               history: _gpuHistory,
@@ -261,7 +265,7 @@ class _SystemMonitorState extends State<SystemMonitor> {
             _buildMetricRow(
               context,
               icon: PhosphorIcons.hardDrives(),
-              label: 'VRAM',
+              label: L.of(locale, 'vram'),
               value:
                   '${_vramUsedGB.toStringAsFixed(1)} / ${_vramTotalGB.toStringAsFixed(0)} GB',
               percent: _vramTotalGB > 0

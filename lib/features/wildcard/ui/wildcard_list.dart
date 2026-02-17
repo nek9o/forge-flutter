@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../core/l10n.dart';
 import '../../../core/services/stability_matrix_service.dart';
 import '../../prompt/services/prompt_parser.dart';
 import '../../prompt/store/prompt_store.dart';
@@ -98,6 +99,7 @@ class _WildcardListState extends ConsumerState<WildcardList> {
   @override
   Widget build(BuildContext context) {
     final fTheme = FTheme.of(context);
+    final locale = ref.watch(localeProvider);
 
     return Container(
       width: 200,
@@ -116,7 +118,7 @@ class _WildcardListState extends ConsumerState<WildcardList> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Wildcards',
+                  L.of(locale, 'wildcards'),
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
                     letterSpacing: 0.5,
@@ -127,7 +129,8 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                 FButton.icon(
                   onPress: _loadWildcards,
                   child: FTooltip(
-                    tipBuilder: (context, controller) => const Text('Reload'),
+                    tipBuilder: (context, controller) =>
+                        Text(L.of(locale, 'reload')),
                     child: PhosphorIcon(
                       PhosphorIcons.arrowClockwise(),
                       size: 16,
@@ -206,9 +209,9 @@ class _WildcardListState extends ConsumerState<WildcardList> {
                   children: [
                     PhosphorIcon(PhosphorIcons.link(), size: 14),
                     const SizedBox(width: 6),
-                    const Text(
-                      'Link StabilityMatrix',
-                      style: TextStyle(fontSize: 12),
+                    Text(
+                      L.of(locale, 'link_stability_matrix'),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ],
                 ),

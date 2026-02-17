@@ -126,6 +126,11 @@ class L {
     'ram': 'RAM',
     'gpu': 'GPU',
     'vram': 'VRAM',
+    'sd_mode': 'SD モード',
+    'wildcards': 'ワイルドカード',
+    'reload': 'リロード',
+    'link_stability_matrix': 'StabilityMatrix を連携',
+    'no_png_info': 'PNG Info が見つかりません',
   };
 
   // ── English ──
@@ -239,5 +244,10 @@ class L {
     'ram': 'RAM',
     'gpu': 'GPU',
     'vram': 'VRAM',
+    'sd_mode': 'SD Mode',
+    'wildcards': 'Wildcards',
+    'reload': 'Reload',
+    'link_stability_matrix': 'Link StabilityMatrix',
+    'no_png_info': 'No PNG Info available',
   };
 }

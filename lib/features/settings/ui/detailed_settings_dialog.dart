@@ -7,13 +7,22 @@ import '../../../core/providers.dart';
 import '../store/settings_store.dart';
 
 class DetailedSettingsDialog extends ConsumerWidget {
-  const DetailedSettingsDialog({super.key});
+  final FDialogStyle style;
+  final Animation<double> animation;
+
+  const DetailedSettingsDialog({
+    super.key,
+    required this.style,
+    required this.animation,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(generationSettingsProvider);
     final locale = ref.watch(localeProvider);
     return FDialog(
+      style: style,
+      animation: animation,
       direction: Axis.vertical,
       title: Text(L.of(locale, 'detailed_settings')),
       body: Column(

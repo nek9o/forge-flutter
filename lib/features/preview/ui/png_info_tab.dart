@@ -4,6 +4,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
@@ -69,7 +70,7 @@ class _PngInfoTabState extends ConsumerState<PngInfoTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final colorScheme = Theme.of(context).colorScheme;
+    final fTheme = FTheme.of(context);
     final locale = ref.watch(localeProvider);
 
     return DropTarget(
@@ -94,8 +95,8 @@ class _PngInfoTabState extends ConsumerState<PngInfoTab>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         color: _dragging
-            ? colorScheme.primaryContainer.withAlpha(40)
-            : colorScheme.surface,
+            ? fTheme.colors.primary.withAlpha(20)
+            : fTheme.colors.background,
         child: _droppedFileBytes == null
             ? Center(
                 child: Container(
@@ -107,36 +108,35 @@ class _PngInfoTabState extends ConsumerState<PngInfoTab>
                         padding: const EdgeInsets.all(28),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: colorScheme.surfaceContainerHigh,
+                          color: fTheme.colors.secondary,
                           border: Border.all(
-                            color: colorScheme.outlineVariant.withAlpha(60),
+                            color: fTheme.colors.border.withAlpha(60),
                             width: 2,
                           ),
                         ),
                         child: PhosphorIcon(
                           PhosphorIcons.uploadSimple(),
                           size: 48,
-                          color: colorScheme.onSurfaceVariant.withAlpha(100),
+                          color: fTheme.colors.mutedForeground,
                         ),
                       ),
                       const SizedBox(height: 24),
                       Text(
                         L.of(locale, 'drop_image_here'),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: colorScheme.onSurfaceVariant.withAlpha(
-                                160,
-                              ),
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.5,
-                            ),
+                        style: TextStyle(
+                          color: fTheme.colors.mutedForeground,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                          fontSize: 16,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         L.of(locale, 'drag_drop_png'),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant.withAlpha(100),
+                        style: TextStyle(
+                          color: fTheme.colors.mutedForeground.withAlpha(160),
                           fontWeight: FontWeight.w300,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -152,8 +152,11 @@ class _PngInfoTabState extends ConsumerState<PngInfoTab>
                         child: Padding(
                           padding: const EdgeInsets.all(20),
                           child: Center(
-                            child: Card(
-                              elevation: 0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: fTheme.colors.border),
+                              ),
                               clipBehavior: Clip.antiAlias,
                               child: Image.memory(
                                 _droppedFileBytes!,
@@ -177,17 +180,16 @@ class _PngInfoTabState extends ConsumerState<PngInfoTab>
                   Positioned(
                     top: 16,
                     right: 16,
-                    child: IconButton.filled(
-                      onPressed: _clearState,
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black54,
+                    child: FButton.icon(
+                      onPress: _clearState,
+                      child: FTooltip(
+                        tipBuilder: (context, controller) =>
+                            Text(L.of(locale, 'close_image')),
+                        child: PhosphorIcon(
+                          PhosphorIcons.x(),
+                          size: 18,
+                        ),
                       ),
-                      icon: PhosphorIcon(
-                        PhosphorIcons.x(),
-                        size: 18,
-                        color: Colors.white,
-                      ),
-                      tooltip: L.of(locale, 'close_image'),
                     ),
                   ),
                 ],

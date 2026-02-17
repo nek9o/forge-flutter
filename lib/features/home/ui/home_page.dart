@@ -26,9 +26,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
+    final fTheme = FTheme.of(context);
 
-    return Scaffold(
-      body: SizedBox.expand(
+    return ColoredBox(
+      color: fTheme.colors.background,
+      child: SizedBox.expand(
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
@@ -72,10 +74,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                     Container(
                       width: sidebarWidth,
                       decoration: BoxDecoration(
-                        color: FTheme.of(context).colors.background,
+                        color: fTheme.colors.background,
                         border: Border(
                           right: BorderSide(
-                            color: FTheme.of(context).colors.border,
+                            color: fTheme.colors.border,
                             width: 1,
                           ),
                         ),
@@ -92,7 +94,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               PhosphorIcons.diamondsFour(
                                 PhosphorIconsStyle.fill,
                               ),
-                              color: FTheme.of(context).colors.primary,
+                              color: fTheme.colors.primary,
                               size: 28,
                             ),
                           ),
@@ -132,10 +134,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                             isActive: false,
                             tooltip: L.of(locale, 'detailed_settings_tooltip'),
                             onPressed: () {
-                              showDialog(
+                              showFDialog(
                                 context: context,
-                                builder: (context) =>
-                                    const DetailedSettingsDialog(),
+                                builder: (context, style, animation) =>
+                                    DetailedSettingsDialog(
+                                      style: style,
+                                      animation: animation,
+                                    ),
                               );
                             },
                           ),
@@ -204,9 +209,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             width: dividerWidth,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                color: FTheme.of(
-                                  context,
-                                ).colors.border.withAlpha(60),
+                                color: fTheme.colors.border.withAlpha(60),
                               ),
                             ),
                           ),
@@ -230,9 +233,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           width: dividerWidth,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: FTheme.of(
-                                context,
-                              ).colors.border.withAlpha(60),
+                              color: fTheme.colors.border.withAlpha(60),
                             ),
                           ),
                         ),
@@ -250,37 +251,42 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ],
               );
             } else {
-              return DefaultTabController(
-                length: 3,
-                child: Column(
-                  children: [
-                    TabBar(
-                      tabs: [
-                        Tab(
-                          icon: PhosphorIcon(PhosphorIcons.gear()),
-                          text: L.of(locale, 'settings'),
-                        ),
-                        Tab(
-                          icon: PhosphorIcon(PhosphorIcons.image()),
-                          text: L.of(locale, 'generation_preview'),
-                        ),
-                        Tab(
-                          icon: PhosphorIcon(PhosphorIcons.textAa()),
-                          text: L.of(locale, 'prompt'),
-                        ),
+              return FTabs(
+                children: [
+                  FTabEntry(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PhosphorIcon(PhosphorIcons.gear(), size: 16),
+                        const SizedBox(width: 6),
+                        Text(L.of(locale, 'settings')),
                       ],
                     ),
-                    const Expanded(
-                      child: TabBarView(
-                        children: [
-                          SettingsPane(showMonitor: false),
-                          PreviewPane(),
-                          PromptPane(),
-                        ],
-                      ),
+                    child: const SettingsPane(showMonitor: false),
+                  ),
+                  FTabEntry(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PhosphorIcon(PhosphorIcons.image(), size: 16),
+                        const SizedBox(width: 6),
+                        Text(L.of(locale, 'generation_preview')),
+                      ],
                     ),
-                  ],
-                ),
+                    child: const PreviewPane(),
+                  ),
+                  FTabEntry(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PhosphorIcon(PhosphorIcons.textAa(), size: 16),
+                        const SizedBox(width: 6),
+                        Text(L.of(locale, 'prompt')),
+                      ],
+                    ),
+                    child: const PromptPane(),
+                  ),
+                ],
               );
             }
           },
@@ -306,38 +312,37 @@ class _HomePageState extends ConsumerState<HomePage> {
         height: 44,
         child: Align(
           alignment: Alignment.center,
-          child: Material(
-            color: isActive
-                ? fTheme.colors.primary.withAlpha(30)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            child: InkWell(
-              onTap: onPressed,
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: label != null
-                      ? Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: isActive
-                                ? fTheme.colors.primary
-                                : fTheme.colors.foreground,
-                          ),
-                        )
-                      : PhosphorIcon(
-                          icon,
-                          size: 24,
+          child: FTappable.animated(
+            onPress: onPressed,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? fTheme.colors.primary.withAlpha(30)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Align(
+                alignment: Alignment.center,
+                child: label != null
+                    ? Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
                           color: isActive
                               ? fTheme.colors.primary
                               : fTheme.colors.foreground,
                         ),
-                ),
+                      )
+                    : PhosphorIcon(
+                        icon,
+                        size: 24,
+                        color: isActive
+                            ? fTheme.colors.primary
+                            : fTheme.colors.foreground,
+                      ),
               ),
             ),
           ),

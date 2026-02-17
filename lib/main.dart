@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'features/home/ui/home_page.dart';
@@ -39,25 +38,31 @@ class MyApp extends ConsumerWidget {
     // UIデバッグモードの適用
     debugPaintSizeEnabled = settings.uiDebugMode;
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Forge Flutter Client',
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        textTheme: GoogleFonts.ibmPlexSansJpTextTheme(),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        textTheme: GoogleFonts.ibmPlexSansJpTextTheme(
-          ThemeData.dark().textTheme,
+    final fThemeData = FThemes.zinc.dark;
+
+    return FTheme(
+      data: fThemeData,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Forge Flutter Client',
+        theme: ThemeData(
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: fThemeData.colors.background,
+          colorScheme: ColorScheme.dark(
+            primary: fThemeData.colors.primary,
+            onPrimary: fThemeData.colors.primaryForeground,
+            surface: fThemeData.colors.background,
+            onSurface: fThemeData.colors.foreground,
+            error: fThemeData.colors.error,
+            onError: fThemeData.colors.errorForeground,
+            outline: fThemeData.colors.border,
+          ),
+          fontFamily: 'packages/forui_assets/Inter',
         ),
+        builder: (context, child) =>
+            FTheme(data: fThemeData, child: child!),
+        home: const HomePage(),
       ),
-      themeMode: ThemeMode.dark,
-      builder: (context, child) =>
-          FTheme(data: FThemes.zinc.dark, child: child!),
-      home: const HomePage(),
     );
   }
 }

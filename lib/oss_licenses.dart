@@ -8,7 +8,7 @@
 // https://pub.dev/packages/dart_pubspec_licenses
 
 /// This package.
-const thisPackage = _flutter_forge;
+const thisPackage = _forge_flutter;
 
 /// All dependencies including transitive dependencies.
 const allDependencies = <Package>[
@@ -31,6 +31,7 @@ const allDependencies = <Package>[
   _csslib,
   _cupertino_icons,
   _dart_pubspec_licenses,
+  _dart_style,
   _dbus,
   _desktop_drop,
   _dio,
@@ -45,6 +46,8 @@ const allDependencies = <Package>[
   _flutter_plugin_android_lifecycle,
   _flutter_riverpod,
   _flutter_web_plugins,
+  _forui,
+  _forui_assets,
   _frontend_server_client,
   _glob,
   _google_fonts,
@@ -53,6 +56,7 @@ const allDependencies = <Package>[
   _http,
   _http_multi_server,
   _http_parser,
+  _intl,
   _io,
   _json_annotation,
   _leak_tracker,
@@ -68,6 +72,7 @@ const allDependencies = <Package>[
   _multi_split_view,
   _native_context_menu,
   _native_toolchain_c,
+  _nitrogen_types,
   _node_preamble,
   _objective_c,
   _package_config,
@@ -114,6 +119,7 @@ const allDependencies = <Package>[
   _state_notifier,
   _stream_channel,
   _string_scanner,
+  _sugar,
   _tar,
   _term_glyph,
   _test,
@@ -154,7 +160,8 @@ const dependencies = <Package>[
   _native_context_menu,
   _google_fonts,
   _cross_file,
-  _phosphor_flutter
+  _phosphor_flutter,
+  _forui
 ];
 
 /// Direct `dev_dependencies`.
@@ -1150,6 +1157,47 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.''',
+  );
+
+/// dart_style 3.1.3
+const _dart_style = Package(
+    name: 'dart_style',
+    description: 'Opinionated, automatic Dart source code formatter. Provides an API and a CLI tool.',
+    repository: 'https://github.com/dart-lang/dart_style',
+    authors: [],
+    version: '3.1.3',
+    spdxIdentifiers: ['BSD-3-Clause'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('analyzer'), PackageRef('args'), PackageRef('collection'), PackageRef('package_config'), PackageRef('path'), PackageRef('pub_semver'), PackageRef('source_span'), PackageRef('yaml')],
+    devDependencies: [PackageRef('test')],
+    license: '''Copyright 2014, the Dart project authors. 
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google LLC nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
   );
 
 /// dbus 0.7.12
@@ -2367,6 +2415,197 @@ const _flutter_web_plugins = Package(
     devDependencies: [],
   );
 
+/// forui 0.18.1
+const _forui = Package(
+    name: 'forui',
+    description: 'Beautifully designed, minimalistic widgets for desktop & touch devices.',
+    homepage: 'https://forui.dev/',
+    repository: 'https://github.com/duobaseio/forui/tree/main/forui',
+    authors: [],
+    version: '0.18.1',
+    spdxIdentifiers: ['OFL-1.1', 'MIT'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('args'), PackageRef('collection'), PackageRef('dart_style'), PackageRef('flutter'), PackageRef('forui_assets'), PackageRef('intl'), PackageRef('meta'), PackageRef('sugar'), PackageRef('vector_math'), PackageRef('yaml')],
+    devDependencies: [PackageRef('analyzer'), PackageRef('http'), PackageRef('leak_tracker_flutter_testing'), PackageRef('path')],
+    license: '''--------------------------------------------------------------------------------
+Forui
+
+MIT License
+
+Copyright (c) 2025 Duobase IO
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+Inter
+
+Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://openfontlicense.org
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.''',
+  );
+
+/// forui_assets 0.18.0
+const _forui_assets = Package(
+    name: 'forui_assets',
+    description: 'Companion assets for Forui, a set of beautifully designed, minimalistic widgets for desktop & touch devices.',
+    homepage: 'https://forui.dev/',
+    repository: 'https://github.com/forus-labs/forui/tree/main/forui_assets',
+    authors: [],
+    version: '0.18.0',
+    spdxIdentifiers: ['ISC', 'MIT'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('flutter'), PackageRef('nitrogen_types')],
+    devDependencies: [PackageRef('dart_style'), PackageRef('html'), PackageRef('sugar')],
+    license: '''--------------------------------------------------------------------------------
+Forui
+
+MIT License
+
+Copyright (c) 2024 Forus Labs Pte Ltd
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+ISC License
+
+Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c)
+for Lucide are held by Lucide Contributors 2022.
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted,
+provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+--------------------------------------------------------------------------------''',
+  );
+
 /// frontend_server_client 4.0.0
 const _frontend_server_client = Package(
     name: 'frontend_server_client',
@@ -2540,7 +2779,7 @@ const _html = Package(
     isMarkdown: false,
     isSdk: false,
     dependencies: [PackageRef('csslib'), PackageRef('source_span')],
-    devDependencies: [PackageRef('path'), PackageRef('test')],
+    devDependencies: [PackageRef('dart_style'), PackageRef('path'), PackageRef('test')],
     license: '''Copyright (c) 2006-2012 The Authors
 
 Contributors:
@@ -2661,6 +2900,47 @@ const _http_parser = Package(
     dependencies: [PackageRef('collection'), PackageRef('source_span'), PackageRef('string_scanner'), PackageRef('typed_data')],
     devDependencies: [PackageRef('test')],
     license: '''Copyright 2014, the Dart project authors. 
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google LLC nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
+  );
+
+/// intl 0.20.2
+const _intl = Package(
+    name: 'intl',
+    description: 'Contains code to deal with internationalized/localized messages, date and number formatting and parsing, bi-directional text, and other internationalization issues.',
+    repository: 'https://github.com/dart-lang/i18n/tree/main/pkgs/intl',
+    authors: [],
+    version: '0.20.2',
+    spdxIdentifiers: ['BSD-3-Clause'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('clock'), PackageRef('meta'), PackageRef('path')],
+    devDependencies: [PackageRef('ffi'), PackageRef('lints'), PackageRef('test')],
+    license: '''Copyright 2013, the Dart project authors.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -3451,6 +3731,42 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
+  );
+
+/// nitrogen_types 0.4.0+1
+const _nitrogen_types = Package(
+    name: 'nitrogen_types',
+    description: 'Companion library for Nitrogen. Provides shared types that generated bindings use.',
+    homepage: 'https://github.com/forus-labs/cauldron/tree/master/nitrogen',
+    repository: 'https://github.com/forus-labs/cauldron/',
+    authors: [],
+    version: '0.4.0+1',
+    spdxIdentifiers: ['MIT'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('flutter')],
+    devDependencies: [],
+    license: '''MIT License
+
+Copyright (c) 2024 Forus Labs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.''',
   );
 
 /// node_preamble 2.0.2
@@ -5627,6 +5943,42 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
   );
 
+/// sugar 4.0.0
+const _sugar = Package(
+    name: 'sugar',
+    description: "Forus Labs' standard library extension. Utilities for date-times, timezones, collections, monads & more.",
+    homepage: 'https://github.com/forus-labs/cauldron',
+    repository: 'https://github.com/forus-labs/cauldron',
+    authors: [],
+    version: '4.0.0',
+    spdxIdentifiers: ['MIT'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('ffi'), PackageRef('meta'), PackageRef('web')],
+    devDependencies: [PackageRef('coverage'), PackageRef('http'), PackageRef('path'), PackageRef('test')],
+    license: '''MIT License
+
+Copyright (c) 2019 - 2020 Forus Labs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.''',
+  );
+
 /// tar 2.0.2
 const _tar = Package(
     name: 'tar',
@@ -5673,7 +6025,7 @@ const _term_glyph = Package(
     isMarkdown: false,
     isSdk: false,
     dependencies: [],
-    devDependencies: [PackageRef('test')],
+    devDependencies: [PackageRef('dart_style'), PackageRef('test')],
     license: '''Copyright 2017, the Dart project authors. 
 
 Redistribution and use in source and binary forms, with or without
@@ -6386,16 +6738,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.''',
   );
 
-/// flutter_forge 1.0.0+1
-const _flutter_forge = Package(
-    name: 'flutter_forge',
-    description: 'A new Flutter project.',
+/// forge_flutter 0.1.0+1
+const _forge_flutter = Package(
+    name: 'forge_flutter',
+    description: 'A lightweight desktop client for Forge Classic Neo.',
     authors: [],
-    version: '1.0.0+1',
-    spdxIdentifiers: [],
+    version: '0.1.0+1',
+    spdxIdentifiers: ['MIT'],
     isMarkdown: false,
     isSdk: false,
-    dependencies: [PackageRef('flutter'), PackageRef('cupertino_icons'), PackageRef('flutter_riverpod'), PackageRef('http'), PackageRef('reorderables'), PackageRef('path_provider'), PackageRef('web_socket_channel'), PackageRef('shimmer'), PackageRef('window_manager'), PackageRef('dio'), PackageRef('shared_preferences'), PackageRef('file_picker'), PackageRef('desktop_drop'), PackageRef('multi_split_view'), PackageRef('native_context_menu'), PackageRef('google_fonts'), PackageRef('cross_file'), PackageRef('phosphor_flutter')],
+    dependencies: [PackageRef('flutter'), PackageRef('cupertino_icons'), PackageRef('flutter_riverpod'), PackageRef('http'), PackageRef('reorderables'), PackageRef('path_provider'), PackageRef('web_socket_channel'), PackageRef('shimmer'), PackageRef('window_manager'), PackageRef('dio'), PackageRef('shared_preferences'), PackageRef('file_picker'), PackageRef('desktop_drop'), PackageRef('multi_split_view'), PackageRef('native_context_menu'), PackageRef('google_fonts'), PackageRef('cross_file'), PackageRef('phosphor_flutter'), PackageRef('forui')],
     devDependencies: [PackageRef('flutter_lints'), PackageRef('flutter_oss_licenses')],
+    license: '''MIT License
+
+Copyright (c) 2026 fal-114514
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.''',
   );
 

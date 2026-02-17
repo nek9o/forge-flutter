@@ -110,7 +110,6 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(width: 4),
                 ],
               ),
             ),

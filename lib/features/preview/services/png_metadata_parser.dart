@@ -126,7 +126,7 @@ class PngMetadataParser {
       // Create a map from the comma-separated settings
       // Note: Values can contain commas, so simple split by ", " might be risky but is standard for this format.
       // Helper to parse key: value
-      final regex = RegExp(r'([\w\s]+):\s*([^,]+)(?:,\s*|$)');
+      final regex = RegExp(r'([\w\s]+):\s*([^,\n]+)(?:,\s*|$)');
       final matches = regex.allMatches(settingsLine);
 
       for (final match in matches) {
@@ -161,6 +161,7 @@ class PngMetadataParser {
               result['model_hash'] = value;
               break;
             case 'Schedule':
+            case 'Scheduler':
               result['scheduler'] = value;
               break;
             // Add other keys as needed

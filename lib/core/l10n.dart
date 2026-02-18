@@ -58,6 +58,7 @@ class L {
     'retry': '再試行',
     'reconnect': '再接続',
     'reconnecting': '再接続中...',
+    'checking_connection': 'サーバー接続を確認中...',
 
     // プロンプト
     'prompt': 'プロンプト',
@@ -175,6 +176,7 @@ class L {
     'retry': 'Retry',
     'reconnect': 'Reconnect',
     'reconnecting': 'Reconnecting...',
+    'checking_connection': 'Checking server connection...',
 
     // Prompt
     'prompt': 'Prompt',

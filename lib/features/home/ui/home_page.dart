@@ -23,11 +23,51 @@ class _HomePageState extends ConsumerState<HomePage> {
   bool _showMonitor = false;
   double _settingsWidth = 280;
   double _previewSplit = 0.5;
+  bool _isDialogShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(settingsStoreProvider.notifier).reconnect();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
     final fTheme = FTheme.of(context);
+
+    // 接続確認中のダイアログ制御
+    ref.listen<bool>(isReconnectingProvider, (previous, next) {
+      if (next && !_isDialogShown) {
+        _isDialogShown = true;
+        showFDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context, style, animation) => FDialog(
+            style: style,
+            animation: animation,
+            direction: Axis.vertical,
+            title: Text(L.of(locale, 'checking_connection')),
+            body: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 300),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [FProgress(), SizedBox(height: 16)],
+                ),
+              ),
+            ),
+            actions: const [],
+          ),
+        ).then((_) => _isDialogShown = false);
+      } else if (!next && _isDialogShown) {
+        Navigator.of(context, rootNavigator: true).pop();
+        _isDialogShown = false;
+      }
+    });
 
     return ColoredBox(
       color: fTheme.colors.background,

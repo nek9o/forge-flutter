@@ -1,6 +1,6 @@
 # Forge Flutter Client
 
-[![Version](https://img.shields.io/badge/version-v0.3.0--alpha-orange)](https://github.com/fal-114514/forge-flutter)
+[![Version](https://img.shields.io/badge/version-v0.3.1-orange)](https://github.com/fal-114514/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/fal-114514/forge-flutter)
 [![License](https://img.shields.io/badge/license-zlib-green)](LICENSE)
 
@@ -60,7 +60,7 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 
 ## コントリビューション
 
-本プロジェクトは現在 **アルファ版** です。未実装の機能やバグが存在する可能性があります。
+本プロジェクトは現在活発に開発中です。**0.x 系のバージョンは常に開発版（プレビュー版）として扱われ**、破壊的な変更が行われる可能性があります。皆様からのフィードバックやプロジェクトへの貢献を歓迎します。
 
 - Issue でのバグ報告や機能提案
 - プルリクエストによる改善

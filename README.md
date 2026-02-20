@@ -1,6 +1,6 @@
 # Forge Flutter Client
 
-[![Version](https://img.shields.io/badge/version-v0.3.0--alpha-orange)](https://github.com/fal-114514/forge-flutter)
+[![Version](https://img.shields.io/badge/version-v0.3.1-orange)](https://github.com/fal-114514/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/fal-114514/forge-flutter)
 [![License](https://img.shields.io/badge/license-zlib-green)](LICENSE)
 
@@ -59,7 +59,7 @@ New to Forge Flutter Client? See the [Quick Start Guide](docs/QUICKSTART.md) for
 
 ## Contribution
 
-This project is currently in **alpha**. Contributions are very welcome!
+This project is currently in active development. Please note that **all 0.x versions are considered development versions**, and major changes may occur. Contributions are very welcome!
 
 - Bug reports & Feature requests via Issues
 - Pull Requests

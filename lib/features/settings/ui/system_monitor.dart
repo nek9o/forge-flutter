@@ -57,6 +57,10 @@ class _SystemMonitorState extends ConsumerState<SystemMonitor> {
 
   Future<void> _fetchData() async {
     if (Platform.isWindows) {
+      if (!_initialized) {
+        // 初回実行時に実行ファイルのパスを解決
+        await _resolveWindowsPaths();
+      }
       // WindowsではCPU、メモリをまとめて取得して高速化
       await Future.wait([_fetchWindowsSystemStats(), _fetchGpu()]);
     } else {
@@ -70,40 +74,255 @@ class _SystemMonitorState extends ConsumerState<SystemMonitor> {
     }
   }
 
-  Future<void> _fetchWindowsSystemStats() async {
+  String _powershellPath = 'powershell.exe';
+  String _nvidiaSmiPath = 'nvidia-smi';
+  String _typeperfPath = 'typeperf.exe';
+  String _wmicPath = 'wmic.exe';
+
+  Future<void> _resolveWindowsPaths() async {
+    // 各コマンドの存在確認 (絶対パスを優先)
+    _powershellPath = await _findExecutable(
+      [
+        r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
+        r'C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe',
+        'powershell.exe',
+      ],
+      ['-NoProfile', '-Command', r'$true'],
+    );
+
+    _nvidiaSmiPath = await _findExecutable(
+      [
+        r'C:\Windows\System32\nvidia-smi.exe',
+        r'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe',
+        'nvidia-smi',
+      ],
+      ['--help'],
+    );
+
+    _typeperfPath = await _findExecutable(
+      [r'C:\Windows\System32\typeperf.exe', 'typeperf.exe'],
+      ['-?'],
+    );
+
+    _wmicPath = await _findExecutable(
+      [
+        r'C:\Windows\System32\wbem\wmic.exe',
+        r'C:\Windows\System32\wmic.exe',
+        'wmic.exe',
+      ],
+      ['/?'],
+    );
+
+    debugPrint(
+      'SystemMonitor: Resolved paths: PS=$_powershellPath, GPU=$_nvidiaSmiPath, TYPEPERF=$_typeperfPath, WMIC=$_wmicPath',
+    );
+
+    // メモリ総量を一度だけ取得
+    await _fetchTotalMemory();
+  }
+
+  Future<void> _fetchTotalMemory() async {
+    // WMICで取得
     try {
-      final result = await Process.run('powershell', [
-        '-NoProfile',
-        '-Command',
-        r'$os = Get-CimInstance Win32_OperatingSystem; $cpu = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; "$cpu;$($os.FreePhysicalMemory),$($os.TotalVisibleMemorySize)"',
+      final res = await Process.run(_wmicPath, [
+        'OS',
+        'get',
+        'TotalVisibleMemorySize',
+        '/value',
       ], runInShell: false);
-
-      final output = result.stdout.toString().trim();
-      // 出力例: "15;1234567,16777216"
-      final topParts = output.split(';');
-      if (topParts.length == 2) {
-        // CPU
-        final cpuValue = double.tryParse(topParts[0]);
-        if (cpuValue != null) {
-          _cpuPercent = cpuValue;
-          _addSample(_cpuHistory, cpuValue);
-        }
-
-        // Memory
-        final memParts = topParts[1].split(',');
-        if (memParts.length == 2) {
-          final free = double.tryParse(memParts[0]);
-          final total = double.tryParse(memParts[1]);
-          if (free != null && total != null && total > 0) {
-            _memoryTotalGB = total / 1024 / 1024; // KB→GB
-            _memoryUsedGB = (total - free) / 1024 / 1024;
-            _memoryPercent = ((total - free) / total * 100);
-            _addSample(_memoryHistory, _memoryPercent);
+      if (res.exitCode == 0) {
+        final match = RegExp(
+          r'TotalVisibleMemorySize=(\d+)',
+        ).firstMatch(res.stdout);
+        if (match != null) {
+          final total = double.tryParse(match.group(1)!);
+          if (total != null && total > 0) {
+            _memoryTotalGB = total / 1024 / 1024;
+            debugPrint('SystemMonitor: Total RAM (WMIC): $_memoryTotalGB GB');
+            return;
           }
         }
       }
-    } catch (_) {
-      // 取得失敗時は何もしない
+    } catch (_) {}
+
+    // PowerShellでフォールバック
+    try {
+      final res = await Process.run(_powershellPath, [
+        '-NoProfile',
+        '-Command',
+        '(Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize',
+      ], runInShell: _powershellPath == 'powershell.exe');
+      if (res.exitCode == 0) {
+        final total = double.tryParse(res.stdout.toString().trim());
+        if (total != null && total > 0) {
+          _memoryTotalGB = total / 1024 / 1024;
+          debugPrint('SystemMonitor: Total RAM (PS): $_memoryTotalGB GB');
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<String> _findExecutable(
+    List<String> paths,
+    List<String> testArgs,
+  ) async {
+    for (final path in paths) {
+      try {
+        final res = await Process.run(path, testArgs);
+        // typeperf -? は 0 以外を返すことがあるので、例外が起きなければOKとする場合もある
+        if (res.exitCode == 0 ||
+            (path.contains('typeperf') && res.stderr.toString().isEmpty)) {
+          return path;
+        }
+      } catch (_) {}
+    }
+    return paths.last; // 見つからなければデフォルト（最後）を返す
+  }
+
+  Future<void> _fetchWindowsSystemStats() async {
+    // 1. CPU情報の取得 (Typeperf > WMIC > PowerShell)
+    bool cpuSuccess = false;
+
+    // Typeperf
+    try {
+      final res = await Process.run(_typeperfPath, [
+        r'\Processor(_Total)\% Processor Time',
+        '-sc',
+        '1',
+      ], runInShell: false);
+      if (res.exitCode == 0) {
+        final output = res.stdout.toString();
+        final lines = output.split('\n');
+        if (lines.length >= 3) {
+          final values = lines[2].split(',');
+          if (values.length >= 2) {
+            final val = double.tryParse(values[1].replaceAll('"', ''));
+            if (val != null) {
+              _cpuPercent = val;
+              _addSample(_cpuHistory, _cpuPercent);
+              cpuSuccess = true;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    if (!cpuSuccess) {
+      // WMIC fallback for CPU
+      try {
+        final res = await Process.run(_wmicPath, [
+          'cpu',
+          'get',
+          'loadpercentage',
+          '/value',
+        ], runInShell: false);
+        if (res.exitCode == 0) {
+          final match = RegExp(r'LoadPercentage=(\d+)').firstMatch(res.stdout);
+          if (match != null) {
+            _cpuPercent = double.tryParse(match.group(1)!) ?? 0;
+            _addSample(_cpuHistory, _cpuPercent);
+            cpuSuccess = true;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 2. メモリ情報の取得 (Typeperf [Available] > WMIC > PowerShell)
+    bool memSuccess = false;
+
+    // Typeperf で Available KBytes を取得
+    try {
+      final res = await Process.run(_typeperfPath, [
+        r'\Memory\Available KBytes',
+        '-sc',
+        '1',
+      ], runInShell: false);
+      if (res.exitCode == 0) {
+        final output = res.stdout.toString();
+        final lines = output.split('\n');
+        if (lines.length >= 3) {
+          final values = lines[2].split(',');
+          if (values.length >= 2) {
+            final availableKB = double.tryParse(values[1].replaceAll('"', ''));
+            if (availableKB != null && _memoryTotalGB > 0) {
+              final usedGB = _memoryTotalGB - (availableKB / 1024 / 1024);
+              _memoryUsedGB = usedGB > 0 ? usedGB : 0;
+              _memoryPercent = (_memoryUsedGB / _memoryTotalGB * 100);
+              _addSample(_memoryHistory, _memoryPercent);
+              memSuccess = true;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // WMIC fallback for RAM
+    if (!memSuccess) {
+      try {
+        final res = await Process.run(_wmicPath, [
+          'OS',
+          'get',
+          'FreePhysicalMemory',
+          '/value',
+        ], runInShell: false);
+        if (res.exitCode == 0) {
+          final match = RegExp(
+            r'FreePhysicalMemory=(\d+)',
+          ).firstMatch(res.stdout);
+          if (match != null && _memoryTotalGB > 0) {
+            final freeKB = double.tryParse(match.group(1)!);
+            if (freeKB != null) {
+              final usedGB = _memoryTotalGB - (freeKB / 1024 / 1024);
+              _memoryUsedGB = usedGB > 0 ? usedGB : 0;
+              _memoryPercent = (_memoryUsedGB / _memoryTotalGB * 100);
+              _addSample(_memoryHistory, _memoryPercent);
+              memSuccess = true;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 3. PowerShell 最終フォールバック
+    if (!cpuSuccess || !memSuccess) {
+      try {
+        final result = await Process.run(_powershellPath, [
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-Command',
+          r'$os = Get-CimInstance Win32_OperatingSystem; $cpu = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; "$([Math]::Round($cpu ?? 0));$($os.FreePhysicalMemory),$($os.TotalVisibleMemorySize)"',
+        ], runInShell: _powershellPath == 'powershell.exe');
+
+        if (result.exitCode == 0) {
+          final output = result.stdout.toString().trim();
+          final topParts = output.split(';');
+          if (topParts.length == 2) {
+            if (!cpuSuccess) {
+              final cpuValue = double.tryParse(topParts[0]);
+              if (cpuValue != null) {
+                _cpuPercent = cpuValue;
+                _addSample(_cpuHistory, cpuValue);
+              }
+            }
+            if (!memSuccess) {
+              final memParts = topParts[1].split(',');
+              if (memParts.length == 2) {
+                final freeKB = double.tryParse(memParts[0]);
+                final totalKB = double.tryParse(memParts[1]);
+                if (freeKB != null && totalKB != null && totalKB > 0) {
+                  _memoryTotalGB = totalKB / 1024 / 1024;
+                  _memoryUsedGB = (totalKB - freeKB) / 1024 / 1024;
+                  _memoryPercent = (_memoryUsedGB / _memoryTotalGB * 100);
+                  _addSample(_memoryHistory, _memoryPercent);
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('SystemMonitor: PowerShell fallback failed: $e');
+      }
     }
   }
 
@@ -176,16 +395,17 @@ class _SystemMonitorState extends ConsumerState<SystemMonitor> {
 
   Future<void> _fetchGpu() async {
     try {
-      final result = await Process.run('nvidia-smi', [
+      final result = await Process.run(_nvidiaSmiPath, [
         '--query-gpu=utilization.gpu,memory.used,memory.total',
         '--format=csv,noheader,nounits',
-      ], runInShell: true);
+      ], runInShell: _nvidiaSmiPath == 'nvidia-smi');
+
       if (result.exitCode == 0) {
         final output = result.stdout.toString().trim();
         // 出力例: "42, 4096, 8192"
         final parts = output.split(',').map((s) => s.trim()).toList();
         if (parts.length >= 3) {
-          _gpuPercent = double.tryParse(parts[0]) ?? 0;
+          _gpuPercent = double.tryParse(parts[0]) ?? 0.0;
           _vramUsedGB = (double.tryParse(parts[1]) ?? 0) / 1024; // MB→GB
           _vramTotalGB = (double.tryParse(parts[2]) ?? 0) / 1024;
           final vramPercent = _vramTotalGB > 0
@@ -195,9 +415,21 @@ class _SystemMonitorState extends ConsumerState<SystemMonitor> {
           _addSample(_gpuHistory, _gpuPercent);
           _addSample(_vramHistory, vramPercent);
           _gpuAvailable = true;
+          return;
         }
+      } else {
+        // nvidia-smi が失敗した場合、GPUは利用不可とする
+        if (_gpuAvailable) {
+          debugPrint(
+            'SystemMonitor: nvidia-smi failed with exit code ${result.exitCode}',
+          );
+        }
+        _gpuAvailable = false;
       }
-    } catch (_) {
+    } catch (e) {
+      if (_gpuAvailable) {
+        debugPrint('SystemMonitor: Exception when running nvidia-smi: $e');
+      }
       _gpuAvailable = false;
     }
   }

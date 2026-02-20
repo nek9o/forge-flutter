@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +16,7 @@ enum GenerationStatus { idle, generating, completed, error }
 class PreviewState {
   final GenerationStatus status;
   final double progress;
-  final String? base64Image;
+  final Uint8List? imageBytes;
   final String? errorMessage;
   final Map<String, dynamic>? metadata;
   final String? rawParameters;
@@ -23,7 +24,7 @@ class PreviewState {
   PreviewState({
     this.status = GenerationStatus.idle,
     this.progress = 0.0,
-    this.base64Image,
+    this.imageBytes,
     this.errorMessage,
     this.metadata,
     this.rawParameters,
@@ -32,7 +33,7 @@ class PreviewState {
   PreviewState copyWith({
     GenerationStatus? status,
     double? progress,
-    String? base64Image,
+    Uint8List? imageBytes,
     String? errorMessage,
     Map<String, dynamic>? metadata,
     String? rawParameters,
@@ -40,7 +41,7 @@ class PreviewState {
     return PreviewState(
       status: status ?? this.status,
       progress: progress ?? this.progress,
-      base64Image: base64Image ?? this.base64Image,
+      imageBytes: imageBytes ?? this.imageBytes,
       errorMessage: errorMessage ?? this.errorMessage,
       metadata: metadata ?? this.metadata,
       rawParameters: rawParameters ?? this.rawParameters,
@@ -82,10 +83,11 @@ class PreviewStore extends StateNotifier<PreviewState> {
 
       Map<String, dynamic>? metadata;
       String? rawParameters;
+      Uint8List? imageBytes;
 
       try {
-        final bytes = base64Decode(base64Image);
-        final pngInfo = PngMetadataParser.parse(bytes);
+        imageBytes = base64Decode(base64Image);
+        final pngInfo = PngMetadataParser.parse(imageBytes);
         if (pngInfo.containsKey('parameters')) {
           rawParameters = pngInfo['parameters'];
           metadata = PngMetadataParser.parseParameters(rawParameters!);
@@ -98,7 +100,7 @@ class PreviewStore extends StateNotifier<PreviewState> {
         state = state.copyWith(
           status: GenerationStatus.completed,
           progress: 1.0,
-          base64Image: base64Image,
+          imageBytes: imageBytes,
           metadata: metadata,
           rawParameters: rawParameters,
         );
@@ -137,10 +139,10 @@ class PreviewStore extends StateNotifier<PreviewState> {
   }
 
   Future<void> saveImage() async {
-    if (state.base64Image == null) return;
+    if (state.imageBytes == null) return;
 
     try {
-      final bytes = base64Decode(state.base64Image!);
+      final bytes = state.imageBytes!;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileName = 'generation_$timestamp.png';
 

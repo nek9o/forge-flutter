@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -167,7 +165,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                     ),
                   ],
                 ),
-                if (previewState.base64Image != null)
+                if (previewState.imageBytes != null)
                   FButton.icon(
                     onPress: () {
                       showDialog(
@@ -199,7 +197,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                                   minScale: 0.1,
                                   maxScale: 5.0,
                                   child: Image.memory(
-                                    base64Decode(previewState.base64Image!),
+                                    previewState.imageBytes!,
                                     fit: BoxFit.contain,
                                   ),
                                 ),
@@ -242,7 +240,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: previewState.base64Image != null
+                    child: previewState.imageBytes != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: ncm.ContextMenuRegion(
@@ -260,9 +258,10 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                                 ),
                               ],
                               child: Image.memory(
-                                base64Decode(previewState.base64Image!),
+                                previewState.imageBytes!,
                                 fit: BoxFit.contain,
                                 gaplessPlayback: true,
+                                cacheWidth: 1024,
                               ),
                             ),
                           )

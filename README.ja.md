@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-v0.3.0--alpha-orange)](https://github.com/fal-114514/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/fal-114514/forge-flutter)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-zlib-green)](LICENSE)
 
 **[English README](README.md)**
 
@@ -43,7 +43,7 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 - **フォント:**
   - **UI:** IBM Plex Sans JP
   - **エディタ:** Geist Mono
-- **ライセンス:** MIT License
+- **ライセンス:** zlib License
 
 ## 開発の動機
 

@@ -161,6 +161,7 @@ class _PngInfoTabState extends ConsumerState<PngInfoTab>
                               child: Image.memory(
                                 _droppedFileBytes!,
                                 fit: BoxFit.contain,
+                                cacheWidth: 1024,
                               ),
                             ),
                           ),
@@ -185,10 +186,7 @@ class _PngInfoTabState extends ConsumerState<PngInfoTab>
                       child: FTooltip(
                         tipBuilder: (context, controller) =>
                             Text(L.of(locale, 'close_image')),
-                        child: PhosphorIcon(
-                          PhosphorIcons.x(),
-                          size: 18,
-                        ),
+                        child: PhosphorIcon(PhosphorIcons.x(), size: 18),
                       ),
                     ),
                   ),

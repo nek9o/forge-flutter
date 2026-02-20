@@ -39,4 +39,4 @@ Corrections to Japanese or English wording, as well as improvements to documenta
 
 ## License
 
-By contributing to this project, you agree that your contributions will be released under the MIT License.
+By contributing to this project, you agree that your contributions will be released under the zlib License.

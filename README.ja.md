@@ -1,6 +1,6 @@
 # Forge Flutter Client
 
-[![Version](https://img.shields.io/badge/version-v0.3.1-orange)](https://github.com/fal-114514/forge-flutter)
+[![Version](https://img.shields.io/badge/version-v0.3.2-orange)](https://github.com/fal-114514/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/fal-114514/forge-flutter)
 [![License](https://img.shields.io/badge/license-zlib-green)](LICENSE)
 

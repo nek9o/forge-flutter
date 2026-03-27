@@ -1,0 +1,109 @@
+name: Auto Release (CalVer)
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Version (CalVer)
+        id: calver
+        shell: pwsh
+        run: |
+          # タイムゾーンを日本時間(JST)にして日付を取得
+          $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Tokyo Standard Time")
+          $now = [System.TimeZoneInfo]::ConvertTimeFromUtc([System.DateTime]::UtcNow, $tz)
+          $date = $now.ToString("yyyy.M.d")
+          
+          # 当日の既存タグを取得し、連番を算出
+          git fetch --tags --quiet
+          $tags = git tag --list "${date}-*"
+          $count = 0
+          if ($tags) {
+            $count = $tags.Count
+          }
+          $sequence = $count + 1
+          
+          $version = "${date}-${sequence}"
+          $pub_version = "${date}+${sequence}"
+          
+          echo "VERSION=${version}" >> $env:GITHUB_OUTPUT
+          echo "PUB_VERSION=${pub_version}" >> $env:GITHUB_OUTPUT
+          echo "Generated version: ${version}"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Update Version Files
+        shell: pwsh
+        run: |
+          $version = "${{ steps.calver.outputs.VERSION }}"
+          $pub_version = "${{ steps.calver.outputs.PUB_VERSION }}"
+          
+          # pubspec.yaml の更新
+          $pubspec = Get-Content pubspec.yaml
+          $new_pubspec = $pubspec -replace 'version: .*', "version: $pub_version"
+          Set-Content pubspec.yaml $new_pubspec
+          
+          # README のバッジ更新 (Shields.io 形式: version-v2026.3.27--1)
+          $badge_version = "v" + $version.Replace("-", "--")
+          
+          $readme_files = @("README.md", "README.ja.md")
+          foreach ($file in $readme_files) {
+            if (Test-Path $file) {
+              $content = Get-Content $file
+              $new_content = $content -replace 'version-v\d+\.\d+\.\d+[^ \n\)]*', "version-$badge_version"
+              Set-Content $file $new_content
+            }
+          }
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Generate Licenses
+        run: dart run flutter_oss_licenses:generate
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Create Zip Archive
+        shell: pwsh
+        run: |
+          $version = "${{ steps.calver.outputs.VERSION }}"
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "forge-flutter-${version}.zip"
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Commit and Push
+        run: |
+          git add .
+          git commit -m "chore(release): bump version to ${{ steps.calver.outputs.VERSION }} [skip ci]" || echo "No changes to commit"
+          git push
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.calver.outputs.VERSION }}
+          name: Release ${{ steps.calver.outputs.VERSION }}
+          files: forge-flutter-${{ steps.calver.outputs.VERSION }}.zip
+          generate_release_notes: true
+          prerelease: true

@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-v0.3.2-orange)](https://github.com/fal-114514/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/fal-114514/forge-flutter)
-[![License](https://img.shields.io/badge/license-zlib-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-Blue%20Oak-1.0.0-blue)](LICENSE.md)
 
 **[English README](README.md)**
 
@@ -43,7 +43,7 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 - **フォント:**
   - **UI:** IBM Plex Sans JP
   - **エディタ:** Geist Mono
-- **ライセンス:** zlib License
+- **ライセンス:** Blue Oak Model License 1.0.0
 
 ## 開発の動機
 

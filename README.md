@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-v0.3.2-orange)](https://github.com/fal-114514/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/fal-114514/forge-flutter)
-[![License](https://img.shields.io/badge/license-zlib-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-Blue%20Oak-1.0.0-blue)](LICENSE.md)
 
 **[日本語版 README はこちら](README.ja.md)**
 
@@ -43,7 +43,7 @@ Forge Flutter Client is an ultra-lightweight desktop application for [Forge Clas
 - **Fonts:**
   - **UI:** IBM Plex Sans JP
   - **Editor:** Geist Mono
-- **License:** zlib License
+- **License:** Blue Oak Model License 1.0.0
 
 ## Motivation
 

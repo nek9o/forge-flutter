@@ -86,7 +86,7 @@ jobs:
         shell: pwsh
         run: |
           $version = "${{ steps.calver.outputs.VERSION }}"
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "forge-flutter-${version}.zip"
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "build/forge-flutter-${version}.zip"
 
       - name: Configure Git
         run: |
@@ -104,6 +104,6 @@ jobs:
         with:
           tag_name: ${{ steps.calver.outputs.VERSION }}
           name: Release ${{ steps.calver.outputs.VERSION }}
-          files: forge-flutter-${{ steps.calver.outputs.VERSION }}.zip
+          files: build/forge-flutter-${{ steps.calver.outputs.VERSION }}.zip
           generate_release_notes: true
           prerelease: true

@@ -243,26 +243,99 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                     child: previewState.imageBytes != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(16),
-                            child: ncm.ContextMenuRegion(
-                              onItemSelected: (item) {
-                                if (item.title ==
-                                    L.of(ref.read(localeProvider), 'save')) {
-                                  ref
-                                      .read(previewStoreProvider.notifier)
-                                      .saveImage();
-                                }
-                              },
-                              menuItems: [
-                                ncm.MenuItem(
-                                  title: L.of(ref.read(localeProvider), 'save'),
+                            child: Stack(
+                              children: [
+                                ncm.ContextMenuRegion(
+                                  onItemSelected: (item) {
+                                    if (item.title ==
+                                        L.of(ref.read(localeProvider), 'save')) {
+                                      ref
+                                          .read(previewStoreProvider.notifier)
+                                          .saveImage();
+                                    }
+                                  },
+                                  menuItems: [
+                                    ncm.MenuItem(
+                                      title: L.of(
+                                        ref.read(localeProvider),
+                                        'save',
+                                      ),
+                                    ),
+                                  ],
+                                  child: Image.memory(
+                                    previewState.imageBytes!,
+                                    fit: BoxFit.contain,
+                                    gaplessPlayback: true,
+                                    cacheWidth: 1024,
+                                  ),
                                 ),
+                                if (previewState.images.length > 1) ...[
+                                  // 左右のナビゲーションボタン
+                                  Positioned.fill(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        _buildNavigationButton(
+                                          context,
+                                          icon: PhosphorIcons.caretLeft(),
+                                          onPressed:
+                                              previewState.currentIndex > 0
+                                                  ? () => ref
+                                                      .read(
+                                                        previewStoreProvider.notifier,
+                                                      )
+                                                      .setIndex(
+                                                        previewState.currentIndex -
+                                                            1,
+                                                      )
+                                                  : null,
+                                        ),
+                                        _buildNavigationButton(
+                                          context,
+                                          icon: PhosphorIcons.caretRight(),
+                                          onPressed:
+                                              previewState.currentIndex <
+                                                      previewState.images.length -
+                                                          1
+                                                  ? () => ref
+                                                      .read(
+                                                        previewStoreProvider.notifier,
+                                                      )
+                                                      .setIndex(
+                                                        previewState.currentIndex +
+                                                            1,
+                                                      )
+                                                  : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // インデックス表示
+                                  Positioned(
+                                    bottom: 12,
+                                    right: 12,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.4),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${previewState.currentIndex + 1} / ${previewState.images.length}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
-                              child: Image.memory(
-                                previewState.imageBytes!,
-                                fit: BoxFit.contain,
-                                gaplessPlayback: true,
-                                cacheWidth: 1024,
-                              ),
                             ),
                           )
                         : Center(
@@ -366,6 +439,34 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
             child: SingleChildScrollView(child: PngInfoPane()),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Material(
+        color: Colors.black.withOpacity(0.3),
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              icon,
+              size: 24,
+              color: onPressed != null
+                  ? Colors.white
+                  : Colors.white.withOpacity(0.3),
+            ),
+          ),
+        ),
       ),
     );
   }

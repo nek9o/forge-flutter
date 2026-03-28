@@ -67,7 +67,7 @@ class GenerationSettings {
       'seed': seed,
       'save_images': saveImages,
       'batch_size': batchSize,
-      'batch_count': batchCount,
+      'n_iter': batchCount,
       'sd_mode': sdMode,
       'ui_debug_mode': uiDebugMode,
     };

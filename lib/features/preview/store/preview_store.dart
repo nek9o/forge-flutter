@@ -16,7 +16,8 @@ enum GenerationStatus { idle, generating, completed, error }
 class PreviewState {
   final GenerationStatus status;
   final double progress;
-  final Uint8List? imageBytes;
+  final List<Uint8List> images;
+  final int currentIndex;
   final String? errorMessage;
   final Map<String, dynamic>? metadata;
   final String? rawParameters;
@@ -24,16 +25,23 @@ class PreviewState {
   PreviewState({
     this.status = GenerationStatus.idle,
     this.progress = 0.0,
-    this.imageBytes,
+    this.images = const [],
+    this.currentIndex = 0,
     this.errorMessage,
     this.metadata,
     this.rawParameters,
   });
 
+  Uint8List? get imageBytes =>
+      images.isNotEmpty && currentIndex < images.length
+          ? images[currentIndex]
+          : null;
+
   PreviewState copyWith({
     GenerationStatus? status,
     double? progress,
-    Uint8List? imageBytes,
+    List<Uint8List>? images,
+    int? currentIndex,
     String? errorMessage,
     Map<String, dynamic>? metadata,
     String? rawParameters,
@@ -41,7 +49,8 @@ class PreviewState {
     return PreviewState(
       status: status ?? this.status,
       progress: progress ?? this.progress,
-      imageBytes: imageBytes ?? this.imageBytes,
+      images: images ?? this.images,
+      currentIndex: currentIndex ?? this.currentIndex,
       errorMessage: errorMessage ?? this.errorMessage,
       metadata: metadata ?? this.metadata,
       rawParameters: rawParameters ?? this.rawParameters,
@@ -77,30 +86,38 @@ class PreviewStore extends StateNotifier<PreviewState> {
         ...settings.toJson(),
       };
 
-      final base64Image = await client.txt2img(params);
+      final base64Images = await client.txt2img(params);
 
       _stopProgressPolling();
 
       Map<String, dynamic>? metadata;
       String? rawParameters;
-      Uint8List? imageBytes;
+      final List<Uint8List> decodedImages = [];
 
-      try {
-        imageBytes = base64Decode(base64Image);
-        final pngInfo = PngMetadataParser.parse(imageBytes);
-        if (pngInfo.containsKey('parameters')) {
-          rawParameters = pngInfo['parameters'];
-          metadata = PngMetadataParser.parseParameters(rawParameters!);
+      for (final base64Image in base64Images) {
+        try {
+          final imageBytes = base64Decode(base64Image);
+          decodedImages.add(imageBytes);
+
+          // 最初の画像からのみメタデータを取得（通常は全画像で共通または代表として扱う）
+          if (decodedImages.length == 1) {
+            final pngInfo = PngMetadataParser.parse(imageBytes);
+            if (pngInfo.containsKey('parameters')) {
+              rawParameters = pngInfo['parameters'];
+              metadata = PngMetadataParser.parseParameters(rawParameters!);
+            }
+          }
+        } catch (e) {
+          print('Error parsing image: $e');
         }
-      } catch (e) {
-        print('Error parsing metadata: $e');
       }
 
       if (mounted) {
         state = state.copyWith(
           status: GenerationStatus.completed,
           progress: 1.0,
-          imageBytes: imageBytes,
+          images: decodedImages,
+          currentIndex: 0,
           metadata: metadata,
           rawParameters: rawParameters,
         );
@@ -136,6 +153,12 @@ class PreviewStore extends StateNotifier<PreviewState> {
   void _stopProgressPolling() {
     _progressTimer?.cancel();
     _progressTimer = null;
+  }
+
+  void setIndex(int index) {
+    if (index >= 0 && index < state.images.length) {
+      state = state.copyWith(currentIndex: index);
+    }
   }
 
   Future<void> saveImage() async {

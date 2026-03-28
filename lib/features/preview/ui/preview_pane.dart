@@ -20,6 +20,7 @@ class PreviewPane extends ConsumerStatefulWidget {
 class _PreviewPaneState extends ConsumerState<PreviewPane> {
   int _selectedIndex = 0;
   String? _lastShownConnectionError;
+  double _previewVerticalSplit = 0.5;
 
   @override
   Widget build(BuildContext context) {
@@ -136,236 +137,405 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
     final isConnectionError =
         errorMessage != null && _looksLikeApiConnectionFailure(errorMessage);
 
-    return ColoredBox(
-      color: fTheme.colors.background,
-      child: Column(
-        children: [
-          // ヘッダー
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    PhosphorIcon(
-                      PhosphorIcons.image(),
-                      size: 20,
-                      color: fTheme.colors.primary,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      L.of(ref.read(localeProvider), 'generation_preview'),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.5,
-                        fontSize: 20,
-                        color: fTheme.colors.foreground,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalHeight = constraints.maxHeight;
+        const headerHeight = 60.0;
+        const toolbarHeight = 100.0;
+        const dividerHeight = 12.0;
+
+        final availableHeight =
+            totalHeight - headerHeight - toolbarHeight - dividerHeight;
+        final clampedAvailable = availableHeight < 0 ? 0.0 : availableHeight;
+
+        final previewHeight = clampedAvailable * _previewVerticalSplit;
+
+        return ColoredBox(
+          color: fTheme.colors.background,
+          child: Column(
+            children: [
+              // ヘッダー
+              SizedBox(
+                height: headerHeight,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          PhosphorIcon(
+                            PhosphorIcons.image(),
+                            size: 20,
+                            color: fTheme.colors.primary,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            L.of(ref.read(localeProvider), 'generation_preview'),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.5,
+                              fontSize: 18,
+                              color: fTheme.colors.foreground,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      if (previewState.imageBytes != null)
+                        FButton.icon(
+                          onPress: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => Dialog(
+                                backgroundColor: Colors.transparent,
+                                insetPadding: EdgeInsets.zero,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    ncm.ContextMenuRegion(
+                                      onItemSelected: (item) {
+                                        if (item.title ==
+                                            L.of(
+                                              ref.read(localeProvider),
+                                              'save',
+                                            )) {
+                                          ref
+                                              .read(previewStoreProvider.notifier)
+                                              .saveImage();
+                                        }
+                                      },
+                                      menuItems: [
+                                        ncm.MenuItem(
+                                          title: L.of(
+                                            ref.read(localeProvider),
+                                            'save',
+                                          ),
+                                        ),
+                                      ],
+                                      child: InteractiveViewer(
+                                        minScale: 0.1,
+                                        maxScale: 5.0,
+                                        child: Image.memory(
+                                          previewState.imageBytes!,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 20,
+                                      right: 20,
+                                      child: FButton.icon(
+                                        onPress: () =>
+                                            Navigator.of(context).pop(),
+                                        child: PhosphorIcon(
+                                          PhosphorIcons.x(),
+                                          color: Colors.white,
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          child: PhosphorIcon(PhosphorIcons.arrowsOut(), size: 20),
+                        ),
+                    ],
+                  ),
                 ),
-                if (previewState.imageBytes != null)
-                  FButton.icon(
-                    onPress: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => Dialog(
-                          backgroundColor: Colors.transparent,
-                          insetPadding: EdgeInsets.zero,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              ncm.ContextMenuRegion(
-                                onItemSelected: (item) {
-                                  if (item.title ==
-                                      L.of(ref.read(localeProvider), 'save')) {
-                                    ref
-                                        .read(previewStoreProvider.notifier)
-                                        .saveImage();
-                                  }
-                                },
-                                menuItems: [
-                                  ncm.MenuItem(
-                                    title: L.of(
-                                      ref.read(localeProvider),
-                                      'save',
+              ),
+              // 画像プレビュー
+              SizedBox(
+                height: previewHeight,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: fTheme.colors.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: fTheme.colors.border),
+                      ),
+                      child: previewState.imageBytes != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Stack(
+                                children: [
+                                  ncm.ContextMenuRegion(
+                                    onItemSelected: (item) {
+                                      if (item.title ==
+                                          L.of(ref.read(localeProvider), 'save')) {
+                                        ref
+                                            .read(previewStoreProvider.notifier)
+                                            .saveImage();
+                                      }
+                                    },
+                                    menuItems: [
+                                      ncm.MenuItem(
+                                        title: L.of(
+                                          ref.read(localeProvider),
+                                          'save',
+                                        ),
+                                      ),
+                                    ],
+                                    child: Center(
+                                      child: Image.memory(
+                                        previewState.imageBytes!,
+                                        fit: BoxFit.contain,
+                                        gaplessPlayback: true,
+                                        cacheWidth: 1024,
+                                      ),
+                                    ),
+                                  ),
+                                  if (previewState.images.length > 1) ...[
+                                    // 左右のナビゲーションボタン
+                                    Positioned.fill(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          _buildNavigationButton(
+                                            context,
+                                            icon: PhosphorIcons.caretLeft(),
+                                            onPressed:
+                                                previewState.currentIndex > 0
+                                                    ? () => ref
+                                                        .read(
+                                                          previewStoreProvider.notifier,
+                                                        )
+                                                        .setIndex(
+                                                          previewState.currentIndex -
+                                                              1,
+                                                        )
+                                                    : null,
+                                          ),
+                                          _buildNavigationButton(
+                                            context,
+                                            icon: PhosphorIcons.caretRight(),
+                                            onPressed:
+                                                previewState.currentIndex <
+                                                        previewState.images.length -
+                                                            1
+                                                    ? () => ref
+                                                        .read(
+                                                          previewStoreProvider.notifier,
+                                                        )
+                                                        .setIndex(
+                                                          previewState.currentIndex +
+                                                              1,
+                                                        )
+                                                    : null,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // インデックス表示
+                                    Positioned(
+                                      bottom: 12,
+                                      right: 12,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.4),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          '${previewState.currentIndex + 1} / ${previewState.images.length}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  PhosphorIcon(
+                                    PhosphorIcons.imageSquare(),
+                                    size: 48,
+                                    color: fTheme.colors.mutedForeground
+                                        .withAlpha(80),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    L.of(ref.read(localeProvider), 'no_image'),
+                                    style: TextStyle(
+                                      color: fTheme.colors.mutedForeground,
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ],
-                                child: InteractiveViewer(
-                                  minScale: 0.1,
-                                  maxScale: 5.0,
-                                  child: Image.memory(
-                                    previewState.imageBytes!,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
                               ),
-                              Positioned(
-                                top: 20,
-                                right: 20,
-                                child: FButton.icon(
-                                  onPress: () => Navigator.of(context).pop(),
-                                  child: PhosphorIcon(
-                                    PhosphorIcons.x(),
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+              // リサイズ境界線
+              MouseRegion(
+                cursor: SystemMouseCursors.resizeRow,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onVerticalDragUpdate: (details) {
+                    if (clampedAvailable <= 0) return;
+                    setState(() {
+                      _previewVerticalSplit =
+                          (_previewVerticalSplit +
+                                  (details.delta.dy / clampedAvailable))
+                              .clamp(0.05, 0.95);
+                    });
+                  },
+                  child: SizedBox(
+                    height: dividerHeight,
+                    width: double.infinity,
+                    child: Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: fTheme.colors.border,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // 下部エリア（コントロールと情報）
+              Expanded(
+                child: Column(
+                  children: [
+                    // エラー表示
+                    if (previewState.errorMessage != null && !isConnectionError)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: FAlert(
+                          icon: PhosphorIcon(PhosphorIcons.warning()),
+                          title: Text(
+                            '${L.of(ref.read(localeProvider), 'error')}: ${previewState.errorMessage}',
+                          ),
+                        ),
+                      ),
+                    // プログレスバー
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 4,
+                      ),
+                      child: Column(
+                        children: [
+                          if (previewState.status ==
+                              GenerationStatus.generating) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: previewState.progress,
+                                backgroundColor: fTheme.colors.muted,
+                                valueColor: AlwaysStoppedAnimation(
+                                  fTheme.colors.primary,
                                 ),
+                                minHeight: 4,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${(previewState.progress * 100).toInt()}%',
+                              style: TextStyle(
+                                color: fTheme.colors.mutedForeground,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    // 生成ボタン
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FButton(
+                          onPress:
+                              previewState.status == GenerationStatus.generating
+                                  ? null
+                                  : () {
+                                      ref
+                                          .read(previewStoreProvider.notifier)
+                                          .generateImage();
+                                    },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (previewState.status !=
+                                  GenerationStatus.generating) ...[
+                                PhosphorIcon(PhosphorIcons.sparkle(), size: 20),
+                                const SizedBox(width: 8),
+                              ],
+                              Text(
+                                previewState.status ==
+                                        GenerationStatus.generating
+                                    ? L.of(ref.read(localeProvider), 'generating')
+                                    : L.of(ref.read(localeProvider), 'generate'),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                    child: PhosphorIcon(PhosphorIcons.arrowsOut(), size: 20),
-                  ),
-              ],
-            ),
-          ),
-          // 画像プレビュー
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: fTheme.colors.muted,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: fTheme.colors.border),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: previewState.imageBytes != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: ncm.ContextMenuRegion(
-                              onItemSelected: (item) {
-                                if (item.title ==
-                                    L.of(ref.read(localeProvider), 'save')) {
-                                  ref
-                                      .read(previewStoreProvider.notifier)
-                                      .saveImage();
-                                }
-                              },
-                              menuItems: [
-                                ncm.MenuItem(
-                                  title: L.of(ref.read(localeProvider), 'save'),
-                                ),
-                              ],
-                              child: Image.memory(
-                                previewState.imageBytes!,
-                                fit: BoxFit.contain,
-                                gaplessPlayback: true,
-                                cacheWidth: 1024,
-                              ),
-                            ),
-                          )
-                        : Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                PhosphorIcon(
-                                  PhosphorIcons.imageSquare(),
-                                  size: 56,
-                                  color: fTheme.colors.mutedForeground
-                                      .withAlpha(80),
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  L.of(ref.read(localeProvider), 'no_image'),
-                                  style: TextStyle(
-                                    color: fTheme.colors.mutedForeground,
-                                    fontWeight: FontWeight.w300,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // エラー表示
-          if (previewState.errorMessage != null && !isConnectionError)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: FAlert(
-                icon: PhosphorIcon(PhosphorIcons.warning()),
-                title: Text(
-                  '${L.of(ref.read(localeProvider), 'error')}: ${previewState.errorMessage}',
-                ),
-              ),
-            ),
-          // プログレスバー
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Column(
-              children: [
-                if (previewState.status == GenerationStatus.generating) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: previewState.progress,
-                      backgroundColor: fTheme.colors.muted,
-                      valueColor: AlwaysStoppedAnimation(fTheme.colors.primary),
-                      minHeight: 6,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${(previewState.progress * 100).toInt()}%',
-                    style: TextStyle(
-                      color: fTheme.colors.mutedForeground,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-          // 生成ボタン
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: FButton(
-                onPress: previewState.status == GenerationStatus.generating
-                    ? null
-                    : () {
-                        ref.read(previewStoreProvider.notifier).generateImage();
-                      },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (previewState.status != GenerationStatus.generating) ...[
-                      PhosphorIcon(PhosphorIcons.sparkle(), size: 20),
-                      const SizedBox(width: 8),
-                    ],
-                    Text(
-                      previewState.status == GenerationStatus.generating
-                          ? L.of(ref.read(localeProvider), 'generating')
-                          : L.of(ref.read(localeProvider), 'generate'),
+                    // PNG Info
+                    const Expanded(
+                      child: SingleChildScrollView(child: PngInfoPane()),
                     ),
                   ],
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNavigationButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Material(
+        color: Colors.black.withOpacity(0.3),
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              icon,
+              size: 24,
+              color: onPressed != null
+                  ? Colors.white
+                  : Colors.white.withOpacity(0.3),
             ),
           ),
-          // PNG Info
-          const Expanded(
-            flex: 2,
-            child: SingleChildScrollView(child: PngInfoPane()),
-          ),
-        ],
+        ),
       ),
     );
   }

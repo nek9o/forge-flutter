@@ -64,6 +64,17 @@ class _LoraBrowserState extends ConsumerState<LoraBrowser> {
                       color: fTheme.colors.foreground,
                     ),
                   ),
+                  const Spacer(),
+                  FTooltip(
+                    tipBuilder:
+                        (context, controller) => Text(L.of(locale, 'refresh')),
+                    child: FButton.icon(
+                      variant: FButtonVariant.ghost,
+                      onPress:
+                          () => ref.read(settingsStoreProvider.notifier).refreshAll(),
+                      child: PhosphorIcon(PhosphorIcons.arrowsClockwise()),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),

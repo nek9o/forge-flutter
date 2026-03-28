@@ -118,4 +118,23 @@ class ForgeApiClient {
       throw Exception('Failed to get progress');
     }
   }
+
+  Future<void> refreshSDModels() async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/sdapi/v1/refresh-checkpoints'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to refresh models: ${response.statusCode}');
+    }
+  }
+
+  Future<void> refreshLoras() async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/sdapi/v1/refresh-loras'),
+    );
+    if (response.statusCode != 200) {
+      // Some versions might not have this endpoint, but we should at least try.
+      throw Exception('Failed to refresh loras: ${response.statusCode}');
+    }
+  }
 }

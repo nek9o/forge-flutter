@@ -147,6 +147,36 @@ class SettingsStore extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  Future<void> refreshAll() async {
+    state = const AsyncValue.loading();
+    try {
+      final client = ref.read(forgeApiClientProvider);
+
+      // サーバー側のリフレッシュ要求
+      await Future.wait([
+        client.refreshSDModels(),
+        client.refreshLoras().catchError((_) {
+          // LoRAのリフレッシュエンドポイントがない場合は無視
+        }),
+      ]);
+
+      // プロバイダーを無効化して再取得を促す
+      ref.invalidate(sdModelsProvider);
+      ref.invalidate(lorasProvider);
+      ref.invalidate(samplersProvider);
+      ref.invalidate(schedulersProvider);
+
+      await Future.wait([
+        ref.read(sdModelsProvider.future),
+        ref.read(lorasProvider.future),
+      ]);
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
   Future<void> reconnect() async {
     ref.read(isReconnectingProvider.notifier).state = true;
 

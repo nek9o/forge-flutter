@@ -153,26 +153,42 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         ? selectedModel
         : items.values.first;
 
-    return FSelect<String>.rich(
-      key: ValueKey('model_${selectedModel ?? initial}'),
-      label: Text(L.of(locale, 'model')),
-      control: FSelectControl.managed(
-        initial: initial,
-        onChange: (value) {
-          if (value != null) {
-            ref.read(settingsStoreProvider.notifier).selectModel(value);
-          }
-        },
-      ),
-      format: (value) => items.entries
-          .firstWhere(
-            (e) => e.value == value,
-            orElse: () => MapEntry(value, value),
-          )
-          .key,
-      children: items.entries
-          .map((e) => FSelectItem(title: Text(e.key), value: e.value))
-          .toList(),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: FSelect<String>.rich(
+            key: ValueKey('model_${selectedModel ?? initial}'),
+            label: Text(L.of(locale, 'model')),
+            control: FSelectControl.managed(
+              initial: initial,
+              onChange: (value) {
+                if (value != null) {
+                  ref.read(settingsStoreProvider.notifier).selectModel(value);
+                }
+              },
+            ),
+            format: (value) => items.entries
+                .firstWhere(
+                  (e) => e.value == value,
+                  orElse: () => MapEntry(value, value),
+                )
+                .key,
+            children: items.entries
+                .map((e) => FSelectItem(title: Text(e.key), value: e.value))
+                .toList(),
+          ),
+        ),
+        const SizedBox(width: 8),
+        FTooltip(
+          tipBuilder: (context, controller) => Text(L.of(locale, 'refresh')),
+          child: FButton.icon(
+            variant: FButtonVariant.outline,
+            onPress: () => ref.read(settingsStoreProvider.notifier).refreshAll(),
+            child: PhosphorIcon(PhosphorIcons.arrowsClockwise()),
+          ),
+        ),
+      ],
     );
   }
 

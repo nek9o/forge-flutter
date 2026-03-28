@@ -130,6 +130,7 @@ class L {
     'sd_mode': 'SD モード',
     'wildcards': 'ワイルドカード',
     'reload': 'リロード',
+    'refresh': '更新',
     'link_stability_matrix': 'StabilityMatrix を連携',
     'no_png_info': 'PNG Info が見つかりません',
   };
@@ -249,6 +250,7 @@ class L {
     'sd_mode': 'SD Mode',
     'wildcards': 'Wildcards',
     'reload': 'Reload',
+    'refresh': 'Refresh',
     'link_stability_matrix': 'Link StabilityMatrix',
     'no_png_info': 'No PNG Info available',
   };

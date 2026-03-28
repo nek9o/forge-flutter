@@ -92,7 +92,7 @@ class ForgeApiClient {
     }
   }
 
-  Future<String> txt2img(Map<String, dynamic> params) async {
+  Future<List<String>> txt2img(Map<String, dynamic> params) async {
     final response = await _client.post(
       Uri.parse('$baseUrl/sdapi/v1/txt2img'),
       headers: {'Content-Type': 'application/json'},
@@ -101,8 +101,8 @@ class ForgeApiClient {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data['images'] != null && data['images'].isNotEmpty) {
-        return data['images'][0];
+      if (data['images'] != null && data['images'] is List) {
+        return List<String>.from(data['images']);
       }
       throw Exception('No images returned');
     } else {

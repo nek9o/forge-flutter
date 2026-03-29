@@ -86,8 +86,16 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ヘッダー
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: fTheme.colors.border.withAlpha(120),
+                  width: 0.5,
+                ),
+              ),
+            ),
             child: Row(
               children: [
                 PhosphorIcon(
@@ -106,14 +114,6 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                   ),
                 ),
               ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Divider(
-              height: 1,
-              thickness: 0.5,
-              color: fTheme.colors.border.withAlpha(120),
             ),
           ),
           Expanded(child: _buildMainContent(context, locale, settings)),

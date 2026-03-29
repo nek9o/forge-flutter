@@ -186,56 +186,123 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                           onPress: () {
                             showDialog(
                               context: context,
-                              builder: (context) => Dialog(
-                                backgroundColor: Colors.transparent,
-                                insetPadding: EdgeInsets.zero,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    ncm.ContextMenuRegion(
-                                      onItemSelected: (item) {
-                                        if (item.title ==
-                                            L.of(
-                                              ref.read(localeProvider),
-                                              'save',
-                                            )) {
-                                          ref
-                                              .read(previewStoreProvider.notifier)
-                                              .saveImage();
-                                        }
-                                      },
-                                      menuItems: [
-                                        ncm.MenuItem(
-                                          title: L.of(
-                                            ref.read(localeProvider),
-                                            'save',
+                              builder: (context) => Consumer(
+                                builder: (context, ref, _) {
+                                  final state = ref.watch(previewStoreProvider);
+                                  return Dialog(
+                                    backgroundColor: Colors.transparent,
+                                    insetPadding: EdgeInsets.zero,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        if (state.imageBytes != null)
+                                          ncm.ContextMenuRegion(
+                                            onItemSelected: (item) {
+                                              if (item.title ==
+                                                  L.of(
+                                                    ref.read(localeProvider),
+                                                    'save',
+                                                  )) {
+                                                ref
+                                                    .read(previewStoreProvider.notifier)
+                                                    .saveImage();
+                                              }
+                                            },
+                                            menuItems: [
+                                              ncm.MenuItem(
+                                                title: L.of(
+                                                  ref.read(localeProvider),
+                                                  'save',
+                                                ),
+                                              ),
+                                            ],
+                                            child: InteractiveViewer(
+                                              minScale: 0.1,
+                                              maxScale: 10.0,
+                                              child: Image.memory(
+                                                state.imageBytes!,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            ),
+                                          ),
+                                        if (state.images.length > 1) ...[
+                                          // 左右のナビゲーションボタン
+                                          Positioned.fill(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                _buildNavigationButton(
+                                                  context,
+                                                  icon: PhosphorIcons.caretLeft(),
+                                                  onPressed: state.currentIndex > 0
+                                                      ? () => ref
+                                                          .read(
+                                                            previewStoreProvider.notifier,
+                                                          )
+                                                          .setIndex(
+                                                            state.currentIndex - 1,
+                                                          )
+                                                      : null,
+                                                ),
+                                                _buildNavigationButton(
+                                                  context,
+                                                  icon: PhosphorIcons.caretRight(),
+                                                  onPressed: state.currentIndex <
+                                                          state.images.length - 1
+                                                      ? () => ref
+                                                          .read(
+                                                            previewStoreProvider.notifier,
+                                                          )
+                                                          .setIndex(
+                                                            state.currentIndex + 1,
+                                                          )
+                                                      : null,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          // インデックス表示
+                                          Positioned(
+                                            bottom: 30,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                                vertical: 6,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.5),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Text(
+                                                '${state.currentIndex + 1} / ${state.images.length}',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        Positioned(
+                                          top: 20,
+                                          right: 20,
+                                          child: FButton.icon(
+                                            onPress: () =>
+                                                Navigator.of(context).pop(),
+                                            child: PhosphorIcon(
+                                              PhosphorIcons.x(),
+                                              color: Colors.white,
+                                              size: 22,
+                                            ),
                                           ),
                                         ),
                                       ],
-                                      child: InteractiveViewer(
-                                        minScale: 0.1,
-                                        maxScale: 5.0,
-                                        child: Image.memory(
-                                          previewState.imageBytes!,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
                                     ),
-                                    Positioned(
-                                      top: 20,
-                                      right: 20,
-                                      child: FButton.icon(
-                                        onPress: () =>
-                                            Navigator.of(context).pop(),
-                                        child: PhosphorIcon(
-                                          PhosphorIcons.x(),
-                                          color: Colors.white,
-                                          size: 22,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
                             );
                           },

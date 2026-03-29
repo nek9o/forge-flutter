@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -104,7 +106,26 @@ class _PromptPaneState extends ConsumerState<PromptPane> {
                 final clampedAvailable =
                     availableHeight < 0 ? 0.0 : availableHeight;
 
-                final positiveHeight = clampedAvailable * _promptSplit;
+                final minTopHeight = 145.0;
+                final minBottomHeight = 100.0;
+
+                // Adjust the split to ensure boundaries
+                double validSplit = _promptSplit;
+                if (clampedAvailable > 0) {
+                  final minSplit = minTopHeight / clampedAvailable;
+                  final maxSplit = (clampedAvailable - minBottomHeight) / clampedAvailable;
+                  
+                  // In case available space is too small, fallback
+                  final actualMin = math.min(minSplit, maxSplit);
+                  final actualMax = math.max(minSplit, maxSplit);
+                  
+                  validSplit = validSplit.clamp(
+                    math.max(0.0, actualMin),
+                    math.min(1.0, actualMax),
+                  );
+                }
+
+                final positiveHeight = clampedAvailable * validSplit;
 
                 return Column(
                   children: [
@@ -120,11 +141,19 @@ class _PromptPaneState extends ConsumerState<PromptPane> {
                         behavior: HitTestBehavior.translucent,
                         onVerticalDragUpdate: (details) {
                           if (clampedAvailable <= 0) return;
+
+                          final minSplit = minTopHeight / clampedAvailable;
+                          final maxSplit = (clampedAvailable - minBottomHeight) / clampedAvailable;
+                          
+                          final actualMin = math.min(minSplit, maxSplit);
+                          final actualMax = math.max(minSplit, maxSplit);
+
                           setState(() {
-                            _promptSplit =
-                                (_promptSplit +
-                                        (details.delta.dy / clampedAvailable))
-                                    .clamp(0.1, 0.9);
+                            _promptSplit = (_promptSplit + (details.delta.dy / clampedAvailable))
+                                .clamp(
+                                  math.max(0.0, actualMin),
+                                  math.min(1.0, actualMax),
+                                );
                           });
                         },
                         onVerticalDragEnd: (details) {

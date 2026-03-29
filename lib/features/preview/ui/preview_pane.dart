@@ -5,7 +5,7 @@ import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
-import '../../../core/pane_resize_stripe.dart';
+import '../../../core/layout_preferences.dart';
 import '../../../core/providers.dart';
 import '../store/preview_store.dart';
 import 'png_info_pane.dart';
@@ -22,6 +22,31 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
   int _selectedIndex = 0;
   String? _lastShownConnectionError;
   double _previewVerticalSplit = 0.5;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLayoutPreferences();
+  }
+
+  Future<void> _loadLayoutPreferences() async {
+    await LayoutPreferences.init();
+    if (mounted) {
+      setState(() {
+        _selectedIndex = LayoutPreferences.getPreviewTabIndex();
+        _previewVerticalSplit = LayoutPreferences.getPreviewVerticalSplit();
+        _initialized = true;
+      });
+    }
+  }
+
+  Future<void> _saveLayoutPreferences() async {
+    if (!_initialized) return;
+
+    await LayoutPreferences.setPreviewTabIndex(_selectedIndex);
+    await LayoutPreferences.setPreviewVerticalSplit(_previewVerticalSplit);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +120,12 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
 
     return Expanded(
       child: FTappable(
-        onPress: () => setState(() => _selectedIndex = index),
+        onPress: () {
+          setState(() {
+            _selectedIndex = index;
+            _saveLayoutPreferences();
+          });
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -506,10 +536,22 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                               .clamp(0.05, 0.95);
                     });
                   },
+                  onVerticalDragEnd: (details) {
+                    _saveLayoutPreferences();
+                  },
                   child: SizedBox(
                     height: dividerHeight,
                     width: double.infinity,
-                    child: const PaneResizeStripe(),
+                    child: Center(
+                      child: Container(
+                        width: 36,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: fTheme.colors.border.withAlpha(160),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

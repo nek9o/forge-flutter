@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/pane_resize_stripe.dart';
 import '../../preview/ui/preview_pane.dart';
 import '../../prompt/ui/prompt_pane.dart';
 import '../../settings/store/settings_store.dart';
@@ -76,13 +79,13 @@ class _HomePageState extends ConsumerState<HomePage> {
           builder: (context, constraints) {
             final width = constraints.maxWidth;
 
-            if (width >= 1200) {
+            if (width >= 600) {
               const sidebarWidth = 56.0;
               const dividerWidth = 6.0;
-              const minSettingsWidth = 220.0;
-              const maxSettingsWidth = 520.0;
-              const minPreviewWidth = 360.0;
-              const minPromptWidth = 360.0;
+              const minSettingsWidth = 260.0;
+              const maxSettingsWidth = 480.0;
+              /// 広いウィンドウ向けの目安。狭いときは [clampedAvailable] の半分まで下げる。
+              const maxPaneMin = 320.0;
 
               final settingsPaneWidth = _settingsExpanded
                   ? _settingsWidth
@@ -96,6 +99,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                   dividerWidth;
 
               final clampedAvailable = available < 0 ? 0.0 : available;
+              final minHalf = clampedAvailable <= 0
+                  ? 0.0
+                  : math.min(maxPaneMin, clampedAvailable / 2);
+              final minPreviewWidth = minHalf;
+              final minPromptWidth = minHalf;
+
               final minSplit = clampedAvailable == 0
                   ? 0.0
                   : (minPreviewWidth / clampedAvailable);
@@ -118,8 +127,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                         color: fTheme.colors.background,
                         border: Border(
                           right: BorderSide(
-                            color: fTheme.colors.border,
-                            width: 1,
+                            color: fTheme.colors.border.withAlpha(120),
+                            width: 0.5,
                           ),
                         ),
                       ),
@@ -151,7 +160,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               });
                             },
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           // システムモニタートグル
                           _buildToolbarButton(
                             context,
@@ -167,7 +176,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               });
                             },
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
 
                           // 詳細設定ボタン
                           _buildToolbarButton(
@@ -202,7 +211,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   : AppLocale.ja;
                             },
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           // ライセンス情報
                           _buildToolbarButton(
                             context,
@@ -221,17 +230,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                         ],
                       ),
                     ),
-                    // 設定ペイン（AnimatedSizeで開閉）
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      alignment: Alignment.centerLeft,
-                      child: SizedBox(
-                        width: _settingsExpanded ? settingsPaneWidth : 0,
-                        child: _settingsExpanded
-                            ? SettingsPane(showMonitor: _showMonitor)
-                            : const SizedBox.shrink(),
-                      ),
+                    // 設定ペイン（幅はホーム側のリサイズに追従）
+                    SizedBox(
+                      width: _settingsExpanded ? settingsPaneWidth : 0,
+                      child: _settingsExpanded
+                          ? SettingsPane(showMonitor: _showMonitor)
+                          : const SizedBox.shrink(),
                     ),
                     if (_settingsExpanded)
                       MouseRegion(
@@ -249,11 +253,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           },
                           child: SizedBox(
                             width: dividerWidth,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: fTheme.colors.border.withAlpha(60),
-                              ),
-                            ),
+                            child: const PaneResizeStripe(),
                           ),
                         ),
                       ),
@@ -273,24 +273,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                         },
                         child: SizedBox(
                           width: dividerWidth,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: fTheme.colors.border.withAlpha(60),
-                            ),
-                          ),
+                          child: const PaneResizeStripe(),
                         ),
                       ),
                     ),
                     SizedBox(width: promptWidth, child: const PromptPane()),
                   ],
                 ),
-              );
-            } else if (width >= 600) {
-              return const Row(
-                children: [
-                  Expanded(flex: 1, child: PreviewPane()),
-                  Expanded(flex: 1, child: PromptPane()),
-                ],
               );
             } else {
               return FTabs(
@@ -355,7 +344,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: Center(
           child: Material(
             color: isActive
-                ? fTheme.colors.primary.withAlpha(30)
+                ? fTheme.colors.primary.withAlpha(20)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             child: InkWell(
@@ -370,7 +359,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ? Text(
                         label,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: isActive
                               ? fTheme.colors.primary
@@ -379,7 +368,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       )
                     : PhosphorIcon(
                         icon,
-                        size: 24, // Icon size
+                        size: 20,
                         color: isActive
                             ? fTheme.colors.primary
                             : fTheme.colors.foreground,

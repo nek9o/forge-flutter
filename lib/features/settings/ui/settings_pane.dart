@@ -72,17 +72,22 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     });
 
     return Container(
-      width: 280,
+      width: double.infinity,
       decoration: BoxDecoration(
         color: fTheme.colors.background,
-        border: Border(right: BorderSide(color: fTheme.colors.border)),
+        border: Border(
+          right: BorderSide(
+            color: fTheme.colors.border.withAlpha(120),
+            width: 0.5,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ヘッダー
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+            padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
             child: Row(
               children: [
                 PhosphorIcon(
@@ -96,7 +101,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
-                    fontSize: 20,
+                    fontSize: 18,
                     color: fTheme.colors.foreground,
                   ),
                 ),
@@ -107,8 +112,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
             padding: const EdgeInsets.only(top: 8),
             child: Divider(
               height: 1,
-              thickness: 1,
-              color: fTheme.colors.border,
+              thickness: 0.5,
+              color: fTheme.colors.border.withAlpha(120),
             ),
           ),
           Expanded(child: _buildMainContent(context, locale, settings)),
@@ -118,8 +123,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Divider(
                 height: 1,
-                thickness: 1,
-                color: fTheme.colors.border,
+                thickness: 0.5,
+                color: fTheme.colors.border.withAlpha(120),
               ),
             ),
             const Padding(
@@ -184,7 +189,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
           tipBuilder: (context, controller) => Text(L.of(locale, 'refresh')),
           child: FButton.icon(
             variant: FButtonVariant.outline,
-            onPress: () => ref.read(settingsStoreProvider.notifier).refreshAll(),
+            onPress: () =>
+                ref.read(settingsStoreProvider.notifier).refreshAll(),
             child: PhosphorIcon(PhosphorIcons.arrowsClockwise()),
           ),
         ),
@@ -344,13 +350,12 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
           }
         },
       ),
-      format: (value) =>
-          items.entries
-              .firstWhere(
-                (e) => e.value == value,
-                orElse: () => MapEntry(value.toString(), value.toString()),
-              )
-              .key,
+      format: (value) => items.entries
+          .firstWhere(
+            (e) => e.value == value,
+            orElse: () => MapEntry(value.toString(), value.toString()),
+          )
+          .key,
       children: items.entries
           .map((e) => FSelectItem(title: Text(e.key), value: e.value))
           .toList(),
@@ -387,7 +392,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         min: min,
         max: max,
         onChanged: onChanged,
-        isDecimal: isDecimal ?? (label.contains('CFG') || label.contains('Scale')),
+        isDecimal:
+            isDecimal ?? (label.contains('CFG') || label.contains('Scale')),
       ),
     );
   }
@@ -421,7 +427,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                 size: 48,
                 color: FTheme.of(context).colors.mutedForeground,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 L.of(locale, 'api_connection_error_title'),
                 textAlign: TextAlign.center,
@@ -455,7 +461,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     final upscalersAsyncValue = ref.watch(upscalersProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -486,16 +492,16 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                       loading: () => const SizedBox.shrink(),
                       error: (err, _) => const SizedBox.shrink(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildSdModeSelect(settings),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     samplersAsyncValue.when(
                       data: (samplers) =>
                           _buildSamplerSelect(samplers, settings, locale),
                       loading: () => const SizedBox.shrink(),
                       error: (err, _) => const SizedBox.shrink(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     schedulersAsyncValue.when(
                       data: (schedulers) =>
                           _buildSchedulerSelect(schedulers, settings, locale),
@@ -521,7 +527,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateWidth(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -533,7 +539,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateHeight(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -545,7 +551,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateSteps(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -576,7 +582,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateBatchSize(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -706,7 +712,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                       loading: () => const SizedBox.shrink(),
                       error: (err, _) => const SizedBox.shrink(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -719,7 +725,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateHrScale(v),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -731,7 +737,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateHiresSteps(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -927,7 +933,7 @@ class _ApiConnectionErrorDialogState
               Text(L.of(_dialogLocale, 'api_connection_error_body')),
               const SizedBox(height: 12),
               Text(L.of(_dialogLocale, 'api_connection_error_body2')),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               FLabel(
                 axis: Axis.vertical,
                 label: Text(L.of(_dialogLocale, 'api_url')),

@@ -6,6 +6,7 @@ import '../../features/settings/models/lora.dart';
 import '../../features/settings/models/sampler.dart';
 import '../../features/settings/models/scheduler.dart';
 import '../../features/settings/models/sd_model.dart';
+import '../../features/settings/models/upscaler.dart';
 
 class ForgeApiClient {
   final String baseUrl;
@@ -77,6 +78,23 @@ class ForgeApiClient {
       }
     } catch (e) {
       throw Exception('Failed to fetch loras: $e');
+    }
+  }
+
+  Future<List<Upscaler>> getUpscalers() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/sdapi/v1/upscalers'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Upscaler.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load upscalers: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch upscalers: $e');
     }
   }
 

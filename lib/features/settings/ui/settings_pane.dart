@@ -72,17 +72,22 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     });
 
     return Container(
-      width: 280,
+      width: double.infinity,
       decoration: BoxDecoration(
         color: fTheme.colors.background,
-        border: Border(right: BorderSide(color: fTheme.colors.border)),
+        border: Border(
+          right: BorderSide(
+            color: fTheme.colors.border.withAlpha(120),
+            width: 0.5,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ヘッダー
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+            padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
             child: Row(
               children: [
                 PhosphorIcon(
@@ -96,7 +101,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
-                    fontSize: 20,
+                    fontSize: 18,
                     color: fTheme.colors.foreground,
                   ),
                 ),
@@ -107,8 +112,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
             padding: const EdgeInsets.only(top: 8),
             child: Divider(
               height: 1,
-              thickness: 1,
-              color: fTheme.colors.border,
+              thickness: 0.5,
+              color: fTheme.colors.border.withAlpha(120),
             ),
           ),
           Expanded(child: _buildMainContent(context, locale, settings)),
@@ -118,8 +123,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Divider(
                 height: 1,
-                thickness: 1,
-                color: fTheme.colors.border,
+                thickness: 0.5,
+                color: fTheme.colors.border.withAlpha(120),
               ),
             ),
             const Padding(
@@ -184,7 +189,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
           tipBuilder: (context, controller) => Text(L.of(locale, 'refresh')),
           child: FButton.icon(
             variant: FButtonVariant.outline,
-            onPress: () => ref.read(settingsStoreProvider.notifier).refreshAll(),
+            onPress: () =>
+                ref.read(settingsStoreProvider.notifier).refreshAll(),
             child: PhosphorIcon(PhosphorIcons.arrowsClockwise()),
           ),
         ),
@@ -314,6 +320,48 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     );
   }
 
+  Widget _buildUpscalerSelect(
+    List upscalers,
+    GenerationSettings settings,
+    AppLocale locale,
+  ) {
+    final Map<String, String> items = {
+      for (var upscaler in upscalers) upscaler.name: upscaler.name,
+    };
+
+    if (ref.watch(isReconnectingProvider)) {
+      return const Center(child: FProgress());
+    }
+
+    final initial = items.values.contains(settings.hiresUpscaler)
+        ? settings.hiresUpscaler!
+        : (items.values.isNotEmpty ? items.values.first : '');
+
+    return FSelect<String>.rich(
+      key: ValueKey('upscaler_${settings.hiresUpscaler}'),
+      label: Text(L.of(locale, 'upscaler')),
+      control: FSelectControl.managed(
+        initial: initial,
+        onChange: (value) {
+          if (value != null) {
+            ref
+                .read(generationSettingsProvider.notifier)
+                .updateHiresUpscaler(value);
+          }
+        },
+      ),
+      format: (value) => items.entries
+          .firstWhere(
+            (e) => e.value == value,
+            orElse: () => MapEntry(value.toString(), value.toString()),
+          )
+          .key,
+      children: items.entries
+          .map((e) => FSelectItem(title: Text(e.key), value: e.value))
+          .toList(),
+    );
+  }
+
   Widget _buildNumberInput(
     BuildContext context, {
     required WidgetRef ref,
@@ -322,6 +370,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     required double min,
     required double max,
     required ValueChanged<double> onChanged,
+    bool? isDecimal,
     String? tooltip,
   }) {
     return FLabel(
@@ -343,7 +392,8 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
         min: min,
         max: max,
         onChanged: onChanged,
-        isDecimal: label.contains('CFG') || label.contains('Scale'),
+        isDecimal:
+            isDecimal ?? (label.contains('CFG') || label.contains('Scale')),
       ),
     );
   }
@@ -377,7 +427,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                 size: 48,
                 color: FTheme.of(context).colors.mutedForeground,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 L.of(locale, 'api_connection_error_title'),
                 textAlign: TextAlign.center,
@@ -408,9 +458,10 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
     final selectedModel = ref.watch(selectedModelProvider);
     final samplersAsyncValue = ref.watch(samplersProvider);
     final schedulersAsyncValue = ref.watch(schedulersProvider);
+    final upscalersAsyncValue = ref.watch(upscalersProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -441,16 +492,16 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                       loading: () => const SizedBox.shrink(),
                       error: (err, _) => const SizedBox.shrink(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildSdModeSelect(settings),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     samplersAsyncValue.when(
                       data: (samplers) =>
                           _buildSamplerSelect(samplers, settings, locale),
                       loading: () => const SizedBox.shrink(),
                       error: (err, _) => const SizedBox.shrink(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     schedulersAsyncValue.when(
                       data: (schedulers) =>
                           _buildSchedulerSelect(schedulers, settings, locale),
@@ -476,7 +527,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateWidth(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -488,7 +539,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateHeight(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -500,7 +551,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateSteps(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -531,7 +582,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                           .read(generationSettingsProvider.notifier)
                           .updateBatchSize(v.toInt()),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildNumberInput(
                       context,
                       ref: ref,
@@ -637,6 +688,69 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
                       ),
                     ],
                   ),
+                ),
+              ),
+              // HiRes Fix
+              FAccordionItem(
+                title: Row(
+                  children: [
+                    Text(L.of(locale, 'hires_fix')),
+                    const Spacer(),
+                    FCheckbox(
+                      value: settings.enableHires,
+                      onChange: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateEnableHires(v),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    upscalersAsyncValue.when(
+                      data: (upscalers) =>
+                          _buildUpscalerSelect(upscalers, settings, locale),
+                      loading: () => const SizedBox.shrink(),
+                      error: (err, _) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'hr_scale'),
+                      value: settings.hrScale,
+                      min: 1.0,
+                      max: 4.0,
+                      isDecimal: true,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateHrScale(v),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'hr_steps'),
+                      value: settings.hiresSteps.toDouble(),
+                      min: 0,
+                      max: 150,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateHiresSteps(v.toInt()),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildNumberInput(
+                      context,
+                      ref: ref,
+                      label: L.of(locale, 'denoising_strength'),
+                      value: settings.denoisingStrength,
+                      min: 0.0,
+                      max: 1.0,
+                      isDecimal: true,
+                      onChanged: (v) => ref
+                          .read(generationSettingsProvider.notifier)
+                          .updateDenoisingStrength(v),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -819,7 +933,7 @@ class _ApiConnectionErrorDialogState
               Text(L.of(_dialogLocale, 'api_connection_error_body')),
               const SizedBox(height: 12),
               Text(L.of(_dialogLocale, 'api_connection_error_body2')),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               FLabel(
                 axis: Axis.vertical,
                 label: Text(L.of(_dialogLocale, 'api_url')),

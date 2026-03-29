@@ -6,6 +6,7 @@ import '../models/lora.dart';
 import '../models/sampler.dart';
 import '../models/scheduler.dart';
 import '../models/sd_model.dart';
+import '../models/upscaler.dart';
 
 final sdModelsProvider = FutureProvider<List<SDModel>>((ref) async {
   final client = ref.watch(forgeApiClientProvider);
@@ -25,6 +26,11 @@ final schedulersProvider = FutureProvider<List<Scheduler>>((ref) async {
 final lorasProvider = FutureProvider<List<Lora>>((ref) async {
   final client = ref.watch(forgeApiClientProvider);
   return client.getLoras();
+});
+
+final upscalersProvider = FutureProvider<List<Upscaler>>((ref) async {
+  final client = ref.watch(forgeApiClientProvider);
+  return client.getUpscalers();
 });
 
 final selectedModelProvider = StateProvider<String?>((ref) => null);
@@ -80,6 +86,26 @@ class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
     state = state.copyWith(uiDebugMode: uiDebugMode);
   }
 
+  void updateEnableHires(bool enableHires) {
+    state = state.copyWith(enableHires: enableHires);
+  }
+
+  void updateHiresUpscaler(String? hiresUpscaler) {
+    state = state.copyWith(hiresUpscaler: hiresUpscaler);
+  }
+
+  void updateHiresSteps(int hiresSteps) {
+    state = state.copyWith(hiresSteps: hiresSteps);
+  }
+
+  void updateDenoisingStrength(double denoisingStrength) {
+    state = state.copyWith(denoisingStrength: denoisingStrength);
+  }
+
+  void updateHrScale(double hrScale) {
+    state = state.copyWith(hrScale: hrScale);
+  }
+
   void updateFromMetadata(Map<String, dynamic> metadata) {
     var newState = state;
     if (metadata.containsKey('width')) {
@@ -117,6 +143,23 @@ class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
     }
     if (metadata.containsKey('ui_debug_mode')) {
       newState = newState.copyWith(uiDebugMode: metadata['ui_debug_mode']);
+    }
+    if (metadata.containsKey('enable_hr')) {
+      newState = newState.copyWith(enableHires: metadata['enable_hr']);
+    }
+    if (metadata.containsKey('hr_upscaler')) {
+      newState = newState.copyWith(hiresUpscaler: metadata['hr_upscaler']);
+    }
+    if (metadata.containsKey('hr_second_pass_steps')) {
+      newState = newState.copyWith(hiresSteps: metadata['hr_second_pass_steps']);
+    }
+    if (metadata.containsKey('denoising_strength')) {
+      newState = newState.copyWith(
+        denoisingStrength: metadata['denoising_strength'],
+      );
+    }
+    if (metadata.containsKey('hr_scale')) {
+      newState = newState.copyWith(hrScale: metadata['hr_scale']);
     }
     // Add other fields as needed
     state = newState;
@@ -165,10 +208,12 @@ class SettingsStore extends StateNotifier<AsyncValue<void>> {
       ref.invalidate(lorasProvider);
       ref.invalidate(samplersProvider);
       ref.invalidate(schedulersProvider);
+      ref.invalidate(upscalersProvider);
 
       await Future.wait([
         ref.read(sdModelsProvider.future),
         ref.read(lorasProvider.future),
+        ref.read(upscalersProvider.future),
       ]);
 
       state = const AsyncValue.data(null);
@@ -185,6 +230,7 @@ class SettingsStore extends StateNotifier<AsyncValue<void>> {
     ref.invalidate(samplersProvider);
     ref.invalidate(schedulersProvider);
     ref.invalidate(lorasProvider);
+    ref.invalidate(upscalersProvider);
 
     final startTime = DateTime.now();
 
@@ -195,6 +241,7 @@ class SettingsStore extends StateNotifier<AsyncValue<void>> {
         ref.read(samplersProvider.future),
         ref.read(schedulersProvider.future),
         ref.read(lorasProvider.future),
+        ref.read(upscalersProvider.future),
       ]).timeout(const Duration(seconds: 10));
 
       // 成功時は即座に終了（isReconnecting = false へ）

@@ -73,15 +73,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
 
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: fTheme.colors.background,
-        border: Border(
-          right: BorderSide(
-            color: fTheme.colors.border.withAlpha(120),
-            width: 0.5,
-          ),
-        ),
-      ),
+      decoration: BoxDecoration(color: fTheme.colors.background),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -111,7 +103,6 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
           Divider(
             height: 1,
             thickness: 0.5,
-            endIndent: 0.5,
             color: fTheme.colors.border.withAlpha(120),
           ),
           Expanded(child: _buildMainContent(context, locale, settings)),
@@ -122,7 +113,6 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
               child: Divider(
                 height: 1,
                 thickness: 0.5,
-                endIndent: 0.5,
                 color: fTheme.colors.border.withAlpha(120),
               ),
             ),

@@ -7,6 +7,8 @@ class PaneResizeStripe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(color: FTheme.of(context).colors.background);
+    return ColoredBox(
+      color: FTheme.of(context).colors.border.withAlpha(120),
+    );
   }
 }

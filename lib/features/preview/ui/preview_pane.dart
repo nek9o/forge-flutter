@@ -5,6 +5,7 @@ import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/layout_preferences.dart';
 import '../../../core/providers.dart';
 import '../store/preview_store.dart';
 import 'png_info_pane.dart';
@@ -21,6 +22,31 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
   int _selectedIndex = 0;
   String? _lastShownConnectionError;
   double _previewVerticalSplit = 0.5;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLayoutPreferences();
+  }
+
+  Future<void> _loadLayoutPreferences() async {
+    await LayoutPreferences.init();
+    if (mounted) {
+      setState(() {
+        _selectedIndex = LayoutPreferences.getPreviewTabIndex();
+        _previewVerticalSplit = LayoutPreferences.getPreviewVerticalSplit();
+        _initialized = true;
+      });
+    }
+  }
+
+  Future<void> _saveLayoutPreferences() async {
+    if (!_initialized) return;
+
+    await LayoutPreferences.setPreviewTabIndex(_selectedIndex);
+    await LayoutPreferences.setPreviewVerticalSplit(_previewVerticalSplit);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +71,12 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
         // カスタムタブヘッダー
         Container(
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: fTheme.colors.border)),
+            border: Border(
+              bottom: BorderSide(
+                color: fTheme.colors.border.withAlpha(120),
+                width: 0.5,
+              ),
+            ),
           ),
           child: Row(
             children: [
@@ -89,7 +120,12 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
 
     return Expanded(
       child: FTappable(
-        onPress: () => setState(() => _selectedIndex = index),
+        onPress: () {
+          setState(() {
+            _selectedIndex = index;
+            _saveLayoutPreferences();
+          });
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -158,7 +194,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
               SizedBox(
                 height: headerHeight,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -171,7 +207,10 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            L.of(ref.read(localeProvider), 'generation_preview'),
+                            L.of(
+                              ref.read(localeProvider),
+                              'generation_preview',
+                            ),
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               letterSpacing: 0.5,
@@ -204,7 +243,10 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                                                     'save',
                                                   )) {
                                                 ref
-                                                    .read(previewStoreProvider.notifier)
+                                                    .read(
+                                                      previewStoreProvider
+                                                          .notifier,
+                                                    )
                                                     .saveImage();
                                               }
                                             },
@@ -230,33 +272,43 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                                           Positioned.fill(
                                             child: Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment.spaceBetween,
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 _buildNavigationButton(
                                                   context,
-                                                  icon: PhosphorIcons.caretLeft(),
-                                                  onPressed: state.currentIndex > 0
+                                                  icon:
+                                                      PhosphorIcons.caretLeft(),
+                                                  onPressed:
+                                                      state.currentIndex > 0
                                                       ? () => ref
-                                                          .read(
-                                                            previewStoreProvider.notifier,
-                                                          )
-                                                          .setIndex(
-                                                            state.currentIndex - 1,
-                                                          )
+                                                            .read(
+                                                              previewStoreProvider
+                                                                  .notifier,
+                                                            )
+                                                            .setIndex(
+                                                              state.currentIndex -
+                                                                  1,
+                                                            )
                                                       : null,
                                                 ),
                                                 _buildNavigationButton(
                                                   context,
-                                                  icon: PhosphorIcons.caretRight(),
-                                                  onPressed: state.currentIndex <
-                                                          state.images.length - 1
+                                                  icon:
+                                                      PhosphorIcons.caretRight(),
+                                                  onPressed:
+                                                      state.currentIndex <
+                                                          state.images.length -
+                                                              1
                                                       ? () => ref
-                                                          .read(
-                                                            previewStoreProvider.notifier,
-                                                          )
-                                                          .setIndex(
-                                                            state.currentIndex + 1,
-                                                          )
+                                                            .read(
+                                                              previewStoreProvider
+                                                                  .notifier,
+                                                            )
+                                                            .setIndex(
+                                                              state.currentIndex +
+                                                                  1,
+                                                            )
                                                       : null,
                                                 ),
                                               ],
@@ -266,12 +318,15 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                                           Positioned(
                                             bottom: 30,
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 14,
-                                                vertical: 6,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 14,
+                                                    vertical: 6,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.5),
+                                                color: Colors.black.withOpacity(
+                                                  0.5,
+                                                ),
                                                 borderRadius:
                                                     BorderRadius.circular(20),
                                               ),
@@ -306,7 +361,10 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                               ),
                             );
                           },
-                          child: PhosphorIcon(PhosphorIcons.arrowsOut(), size: 20),
+                          child: PhosphorIcon(
+                            PhosphorIcons.arrowsOut(),
+                            size: 20,
+                          ),
                         ),
                     ],
                   ),
@@ -317,24 +375,30 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                 height: previewHeight,
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
                     child: Container(
                       width: double.infinity,
                       height: double.infinity,
                       decoration: BoxDecoration(
                         color: fTheme.colors.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: fTheme.colors.border),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: fTheme.colors.border.withAlpha(120),
+                          width: 0.5,
+                        ),
                       ),
                       child: previewState.imageBytes != null
                           ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                               child: Stack(
                                 children: [
                                   ncm.ContextMenuRegion(
                                     onItemSelected: (item) {
                                       if (item.title ==
-                                          L.of(ref.read(localeProvider), 'save')) {
+                                          L.of(
+                                            ref.read(localeProvider),
+                                            'save',
+                                          )) {
                                         ref
                                             .read(previewStoreProvider.notifier)
                                             .saveImage();
@@ -369,32 +433,36 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                                             icon: PhosphorIcons.caretLeft(),
                                             onPressed:
                                                 previewState.currentIndex > 0
-                                                    ? () => ref
-                                                        .read(
-                                                          previewStoreProvider.notifier,
-                                                        )
-                                                        .setIndex(
-                                                          previewState.currentIndex -
-                                                              1,
-                                                        )
-                                                    : null,
+                                                ? () => ref
+                                                      .read(
+                                                        previewStoreProvider
+                                                            .notifier,
+                                                      )
+                                                      .setIndex(
+                                                        previewState
+                                                                .currentIndex -
+                                                            1,
+                                                      )
+                                                : null,
                                           ),
                                           _buildNavigationButton(
                                             context,
                                             icon: PhosphorIcons.caretRight(),
                                             onPressed:
                                                 previewState.currentIndex <
-                                                        previewState.images.length -
-                                                            1
-                                                    ? () => ref
-                                                        .read(
-                                                          previewStoreProvider.notifier,
-                                                        )
-                                                        .setIndex(
-                                                          previewState.currentIndex +
-                                                              1,
-                                                        )
-                                                    : null,
+                                                    previewState.images.length -
+                                                        1
+                                                ? () => ref
+                                                      .read(
+                                                        previewStoreProvider
+                                                            .notifier,
+                                                      )
+                                                      .setIndex(
+                                                        previewState
+                                                                .currentIndex +
+                                                            1,
+                                                      )
+                                                : null,
                                           ),
                                         ],
                                       ),
@@ -410,8 +478,9 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: Colors.black.withOpacity(0.4),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: Text(
                                           '${previewState.currentIndex + 1} / ${previewState.images.length}',
@@ -467,16 +536,19 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                               .clamp(0.05, 0.95);
                     });
                   },
+                  onVerticalDragEnd: (details) {
+                    _saveLayoutPreferences();
+                  },
                   child: SizedBox(
                     height: dividerHeight,
                     width: double.infinity,
                     child: Center(
                       child: Container(
-                        width: 40,
-                        height: 4,
+                        width: 36,
+                        height: 3,
                         decoration: BoxDecoration(
-                          color: fTheme.colors.border,
-                          borderRadius: BorderRadius.circular(2),
+                          color: fTheme.colors.border.withAlpha(160),
+                          borderRadius: BorderRadius.circular(3),
                         ),
                       ),
                     ),
@@ -490,7 +562,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                     // エラー表示
                     if (previewState.errorMessage != null && !isConnectionError)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: FAlert(
                           icon: PhosphorIcon(PhosphorIcons.warning()),
                           title: Text(
@@ -534,18 +606,18 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                     ),
                     // 生成ボタン
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                       child: SizedBox(
                         width: double.infinity,
                         child: FButton(
                           onPress:
                               previewState.status == GenerationStatus.generating
-                                  ? null
-                                  : () {
-                                      ref
-                                          .read(previewStoreProvider.notifier)
-                                          .generateImage();
-                                    },
+                              ? null
+                              : () {
+                                  ref
+                                      .read(previewStoreProvider.notifier)
+                                      .generateImage();
+                                },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -557,8 +629,14 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                               Text(
                                 previewState.status ==
                                         GenerationStatus.generating
-                                    ? L.of(ref.read(localeProvider), 'generating')
-                                    : L.of(ref.read(localeProvider), 'generate'),
+                                    ? L.of(
+                                        ref.read(localeProvider),
+                                        'generating',
+                                      )
+                                    : L.of(
+                                        ref.read(localeProvider),
+                                        'generate',
+                                      ),
                               ),
                             ],
                           ),

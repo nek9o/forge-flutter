@@ -11,6 +11,11 @@ class GenerationSettings {
   final int batchCount;
   final String sdMode;
   final bool uiDebugMode;
+  final bool enableHires;
+  final String? hiresUpscaler;
+  final int hiresSteps;
+  final double denoisingStrength;
+  final double hrScale;
 
   GenerationSettings({
     this.samplerName = 'Euler a',
@@ -25,6 +30,11 @@ class GenerationSettings {
     this.batchCount = 1,
     this.sdMode = 'SD',
     this.uiDebugMode = false,
+    this.enableHires = false,
+    this.hiresUpscaler,
+    this.hiresSteps = 20,
+    this.denoisingStrength = 0.7,
+    this.hrScale = 2.0,
   });
 
   GenerationSettings copyWith({
@@ -40,6 +50,11 @@ class GenerationSettings {
     int? batchCount,
     String? sdMode,
     bool? uiDebugMode,
+    bool? enableHires,
+    String? hiresUpscaler,
+    int? hiresSteps,
+    double? denoisingStrength,
+    double? hrScale,
   }) {
     return GenerationSettings(
       samplerName: samplerName ?? this.samplerName,
@@ -54,6 +69,11 @@ class GenerationSettings {
       batchCount: batchCount ?? this.batchCount,
       sdMode: sdMode ?? this.sdMode,
       uiDebugMode: uiDebugMode ?? this.uiDebugMode,
+      enableHires: enableHires ?? this.enableHires,
+      hiresUpscaler: hiresUpscaler ?? this.hiresUpscaler,
+      hiresSteps: hiresSteps ?? this.hiresSteps,
+      denoisingStrength: denoisingStrength ?? this.denoisingStrength,
+      hrScale: hrScale ?? this.hrScale,
     );
   }
 
@@ -70,7 +90,20 @@ class GenerationSettings {
       'n_iter': batchCount,
       'sd_mode': sdMode,
       'ui_debug_mode': uiDebugMode,
+      'enable_hr': enableHires,
+      'denoising_strength': denoisingStrength,
+      'hr_scale': hrScale,
+      'hr_second_pass_steps': hiresSteps,
     };
+
+    if (enableHires) {
+      map['hr_additional_modules'] = ["Use same choices"];
+      if (hiresUpscaler == null || hiresUpscaler!.isEmpty) {
+        map['hr_upscaler'] = 'Latent';
+      } else {
+        map['hr_upscaler'] = hiresUpscaler!;
+      }
+    }
 
     final schedulerValue = scheduler;
     if (schedulerValue != null &&

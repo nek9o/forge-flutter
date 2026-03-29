@@ -44,7 +44,7 @@ class DetailedSettingsDialog extends ConsumerWidget {
           FLabel(
             axis: Axis.horizontal,
             label: Text(L.of(locale, 'save_to_server')),
-            child: FSwitch(
+            child: FCheckbox(
               value: settings.saveImages,
               onChange: (value) {
                 ref
@@ -57,7 +57,7 @@ class DetailedSettingsDialog extends ConsumerWidget {
           FLabel(
             axis: Axis.horizontal,
             label: Text(L.of(locale, 'ui_debug_mode')),
-            child: FSwitch(
+            child: FCheckbox(
               value: settings.uiDebugMode,
               onChange: (value) {
                 ref

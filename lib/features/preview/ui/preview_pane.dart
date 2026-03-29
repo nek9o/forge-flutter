@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -184,7 +186,24 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
             totalHeight - headerHeight - toolbarHeight - dividerHeight;
         final clampedAvailable = availableHeight < 0 ? 0.0 : availableHeight;
 
-        final previewHeight = clampedAvailable * _previewVerticalSplit;
+        final minTopHeight = 120.0;
+        final minBottomHeight = 180.0;
+
+        double validSplit = _previewVerticalSplit;
+        if (clampedAvailable > 0) {
+          final minSplit = minTopHeight / clampedAvailable;
+          final maxSplit = (clampedAvailable - minBottomHeight) / clampedAvailable;
+          
+          final actualMin = math.min(minSplit, maxSplit);
+          final actualMax = math.max(minSplit, maxSplit);
+          
+          validSplit = validSplit.clamp(
+            math.max(0.0, actualMin),
+            math.min(1.0, actualMax),
+          );
+        }
+
+        final previewHeight = clampedAvailable * validSplit;
 
         return ColoredBox(
           color: fTheme.colors.background,
@@ -529,11 +548,21 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                   behavior: HitTestBehavior.translucent,
                   onVerticalDragUpdate: (details) {
                     if (clampedAvailable <= 0) return;
+                    
+                    final minSplit = minTopHeight / clampedAvailable;
+                    final maxSplit = (clampedAvailable - minBottomHeight) / clampedAvailable;
+                    
+                    final actualMin = math.min(minSplit, maxSplit);
+                    final actualMax = math.max(minSplit, maxSplit);
+
                     setState(() {
                       _previewVerticalSplit =
                           (_previewVerticalSplit +
                                   (details.delta.dy / clampedAvailable))
-                              .clamp(0.05, 0.95);
+                              .clamp(
+                                math.max(0.0, actualMin),
+                                math.min(1.0, actualMax),
+                              );
                     });
                   },
                   onVerticalDragEnd: (details) {

@@ -6738,12 +6738,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.''',
   );
 
-/// forge_flutter 2026.3.29+2
+/// forge_flutter 2026.3.29+3
 const _forge_flutter = Package(
     name: 'forge_flutter',
     description: 'A lightweight desktop client for Forge Classic Neo.',
     authors: [],
-    version: '2026.3.29+2',
+    version: '2026.3.29+3',
     spdxIdentifiers: ['BlueOak-1.0.0'],
     isMarkdown: true,
     isSdk: false,

@@ -6,6 +6,7 @@ import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/layout_preferences.dart';
 import '../../../core/pane_resize_stripe.dart';
 import '../../preview/ui/preview_pane.dart';
 import '../../prompt/ui/prompt_pane.dart';
@@ -27,13 +28,37 @@ class _HomePageState extends ConsumerState<HomePage> {
   double _settingsWidth = 280;
   double _previewSplit = 0.5;
   bool _isDialogShown = false;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
+    _loadLayoutPreferences();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(settingsStoreProvider.notifier).reconnect();
     });
+  }
+
+  Future<void> _loadLayoutPreferences() async {
+    await LayoutPreferences.init();
+    if (mounted) {
+      setState(() {
+        _settingsWidth = LayoutPreferences.getSettingsWidth();
+        _previewSplit = LayoutPreferences.getPreviewSplit();
+        _settingsExpanded = LayoutPreferences.getSettingsExpanded();
+        _showMonitor = LayoutPreferences.getShowMonitor();
+        _initialized = true;
+      });
+    }
+  }
+
+  Future<void> _saveLayoutPreferences() async {
+    if (!_initialized) return;
+
+    await LayoutPreferences.setSettingsWidth(_settingsWidth);
+    await LayoutPreferences.setPreviewSplit(_previewSplit);
+    await LayoutPreferences.setSettingsExpanded(_settingsExpanded);
+    await LayoutPreferences.setShowMonitor(_showMonitor);
   }
 
   @override
@@ -84,6 +109,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               const dividerWidth = 6.0;
               const minSettingsWidth = 260.0;
               const maxSettingsWidth = 480.0;
+
               /// 広いウィンドウ向けの目安。狭いときは [clampedAvailable] の半分まで下げる。
               const maxPaneMin = 320.0;
 
@@ -157,6 +183,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             onPressed: () {
                               setState(() {
                                 _settingsExpanded = !_settingsExpanded;
+                                _saveLayoutPreferences();
                               });
                             },
                           ),
@@ -251,6 +278,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   );
                             });
                           },
+                          onHorizontalDragEnd: (details) {
+                            _saveLayoutPreferences();
+                          },
                           child: SizedBox(
                             width: dividerWidth,
                             child: const PaneResizeStripe(),
@@ -270,6 +300,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         (details.delta.dx / clampedAvailable))
                                     .clamp(0.0, 1.0);
                           });
+                        },
+                        onHorizontalDragEnd: (details) {
+                          _saveLayoutPreferences();
                         },
                         child: SizedBox(
                           width: dividerWidth,

@@ -143,9 +143,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               final promptWidth = clampedAvailable - previewWidth;
 
               return SizedBox.expand(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                child: Stack(
                   children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                     // サイドツールバー
                     Container(
                       width: sidebarWidth,
@@ -265,55 +267,75 @@ class _HomePageState extends ConsumerState<HomePage> {
                           : const SizedBox.shrink(),
                     ),
                     if (_settingsExpanded)
-                      MouseRegion(
-                        cursor: SystemMouseCursors.resizeColumn,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onHorizontalDragUpdate: (details) {
-                            setState(() {
-                              _settingsWidth =
-                                  (_settingsWidth + details.delta.dx).clamp(
-                                    minSettingsWidth,
-                                    maxSettingsWidth,
-                                  );
-                            });
-                          },
-                          onHorizontalDragEnd: (details) {
-                            _saveLayoutPreferences();
-                          },
-                          child: SizedBox(
-                            width: dividerWidth,
-                            child: const PaneResizeStripe(),
-                          ),
-                        ),
+                      SizedBox(
+                        width: dividerWidth,
+                        child: const PaneResizeStripe(),
                       ),
                     SizedBox(width: previewWidth, child: const PreviewPane()),
-                    MouseRegion(
+                    SizedBox(
+                      width: dividerWidth,
+                      child: const PaneResizeStripe(),
+                    ),
+                    SizedBox(width: promptWidth, child: const PromptPane()),
+                  ],
+                ),
+                // --- リサイズハンドルのオーバーレイ ---
+                if (_settingsExpanded)
+                  Positioned(
+                    left: sidebarWidth + settingsPaneWidth - 3.5,
+                    top: 0,
+                    bottom: 0,
+                    width: 8.0,
+                    child: MouseRegion(
                       cursor: SystemMouseCursors.resizeColumn,
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
                         onHorizontalDragUpdate: (details) {
-                          if (clampedAvailable <= 0) return;
                           setState(() {
-                            _previewSplit =
-                                (_previewSplit +
-                                        (details.delta.dx / clampedAvailable))
-                                    .clamp(0.0, 1.0);
+                            _settingsWidth =
+                                (_settingsWidth + details.delta.dx).clamp(
+                                  minSettingsWidth,
+                                  maxSettingsWidth,
+                                );
                           });
                         },
                         onHorizontalDragEnd: (details) {
                           _saveLayoutPreferences();
                         },
-                        child: SizedBox(
-                          width: dividerWidth,
-                          child: const PaneResizeStripe(),
-                        ),
+                        child: Container(color: Colors.transparent),
                       ),
                     ),
-                    SizedBox(width: promptWidth, child: const PromptPane()),
-                  ],
+                  ),
+                Positioned(
+                  left: sidebarWidth +
+                      (_settingsExpanded ? settingsPaneWidth + dividerWidth : 0.0) +
+                      previewWidth -
+                      3.5,
+                  top: 0,
+                  bottom: 0,
+                  width: 8.0,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.resizeColumn,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onHorizontalDragUpdate: (details) {
+                        if (clampedAvailable <= 0) return;
+                        setState(() {
+                          _previewSplit = (_previewSplit +
+                                  (details.delta.dx / clampedAvailable))
+                              .clamp(0.0, 1.0);
+                        });
+                      },
+                      onHorizontalDragEnd: (details) {
+                        _saveLayoutPreferences();
+                      },
+                      child: Container(color: Colors.transparent),
+                    ),
+                  ),
                 ),
-              );
+              ],
+            ),
+          );
             } else {
               return FTabs(
                 children: [

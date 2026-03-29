@@ -49,15 +49,7 @@ class _PromptPaneState extends ConsumerState<PromptPane> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      decoration: BoxDecoration(
-        color: fTheme.colors.background,
-        border: Border(
-          left: BorderSide(
-            color: fTheme.colors.border.withAlpha(80),
-            width: 0.5,
-          ),
-        ),
-      ),
+      decoration: BoxDecoration(color: fTheme.colors.background),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

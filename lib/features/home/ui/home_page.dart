@@ -106,7 +106,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
             if (width >= 600) {
               const sidebarWidth = 56.0;
-              const dividerWidth = 10.0;
+              const dividerWidth = 1.0;
               const minSettingsWidth = 260.0;
               const maxSettingsWidth = 480.0;
 

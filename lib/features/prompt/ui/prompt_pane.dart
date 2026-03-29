@@ -17,11 +17,14 @@ class PromptPane extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       decoration: BoxDecoration(
         color: fTheme.colors.background,
         border: Border(
-          left: BorderSide(color: fTheme.colors.border.withAlpha(40)),
+          left: BorderSide(
+            color: fTheme.colors.border.withAlpha(80),
+            width: 0.5,
+          ),
         ),
       ),
       child: Column(
@@ -41,7 +44,7 @@ class PromptPane extends ConsumerWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
-                  fontSize: 20,
+                  fontSize: 18,
                   color: fTheme.colors.foreground,
                 ),
               ),
@@ -63,9 +66,9 @@ class PromptPane extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           const Expanded(flex: 3, child: PromptEditor()),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           // ネガティブプロンプトヘッダー
           Row(
             children: [
@@ -100,7 +103,7 @@ class PromptPane extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           const Expanded(flex: 2, child: NegativePromptEditor()),
         ],
       ),

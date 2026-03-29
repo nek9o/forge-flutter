@@ -88,14 +88,6 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
           // ヘッダー
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: fTheme.colors.border.withAlpha(120),
-                  width: 0.5,
-                ),
-              ),
-            ),
             child: Row(
               children: [
                 PhosphorIcon(
@@ -116,6 +108,12 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
               ],
             ),
           ),
+          Divider(
+            height: 1,
+            thickness: 0.5,
+            endIndent: 0.5,
+            color: fTheme.colors.border.withAlpha(120),
+          ),
           Expanded(child: _buildMainContent(context, locale, settings)),
           // システムモニター
           if (widget.showMonitor) ...[
@@ -124,6 +122,7 @@ class _SettingsPaneState extends ConsumerState<SettingsPane> {
               child: Divider(
                 height: 1,
                 thickness: 0.5,
+                endIndent: 0.5,
                 color: fTheme.colors.border.withAlpha(120),
               ),
             ),

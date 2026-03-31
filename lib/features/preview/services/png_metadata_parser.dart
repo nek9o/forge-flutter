@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 class PngMetadataParser {
@@ -35,25 +36,71 @@ class PngMetadataParser {
       if (type == 'tEXt') {
         if (offset + 8 + length > bytes.length) break;
         final data = bytes.sublist(offset + 8, offset + 8 + length);
-        final nullSeparatorIndex = data.indexOf(0);
-        if (nullSeparatorIndex != -1) {
-          // Latin-1 is standard for tEXt chunks, but UTF-8 is often used in practice
-          // We'll try UTF-8 first, fallback to Latin-1 if needed, but for simplicity
-          // in Dart string decoding, we usually assume compatible encoding.
+        final nullLoc = data.indexOf(0);
+        if (nullLoc != -1) {
           try {
-            final key = utf8.decode(data.sublist(0, nullSeparatorIndex));
-            final value = utf8.decode(data.sublist(nullSeparatorIndex + 1));
+            final key = utf8.decode(data.sublist(0, nullLoc), allowMalformed: true);
+            final value = utf8.decode(data.sublist(nullLoc + 1), allowMalformed: true);
             metadata[key] = value;
           } catch (e) {
             print('Error decoding tEXt chunk: $e');
-            // Fallback or ignore
-            final key = String.fromCharCodes(
-              data.sublist(0, nullSeparatorIndex),
-            );
-            final value = String.fromCharCodes(
-              data.sublist(nullSeparatorIndex + 1),
-            );
+            final key = String.fromCharCodes(data.sublist(0, nullLoc));
+            final value = String.fromCharCodes(data.sublist(nullLoc + 1));
             metadata[key] = value;
+          }
+        }
+      } else if (type == 'iTXt') {
+        if (offset + 8 + length > bytes.length) break;
+        final data = bytes.sublist(offset + 8, offset + 8 + length);
+        var pos = data.indexOf(0);
+        if (pos != -1 && pos + 2 <= data.length) {
+          final keyword = utf8.decode(data.sublist(0, pos), allowMalformed: true);
+          pos++; // skip null
+          final compressionFlag = data[pos];
+          // final compressionMethod = data[pos + 1];
+          pos += 2; // skip flag and method
+          
+          // skip Language tag
+          final langPos = data.indexOf(0, pos);
+          if (langPos != -1) {
+            pos = langPos + 1; // skip null
+            // skip Translated keyword
+            final transPos = data.indexOf(0, pos);
+            if (transPos != -1) {
+              pos = transPos + 1; // skip null
+              if (compressionFlag == 0) {
+                // Uncompressed
+                final textData = data.sublist(pos);
+                final text = utf8.decode(textData, allowMalformed: true);
+                metadata[keyword] = text;
+              } else if (compressionFlag == 1) {
+                // Compressed
+                try {
+                  final textData = data.sublist(pos);
+                  final inflated = ZLibDecoder().convert(textData);
+                  final text = utf8.decode(inflated, allowMalformed: true);
+                  metadata[keyword] = text;
+                } catch (e) {
+                  print('Error decoding compressed iTXt chunk: $e');
+                }
+              }
+            }
+          }
+        }
+      } else if (type == 'zTXt') {
+        if (offset + 8 + length > bytes.length) break;
+        final data = bytes.sublist(offset + 8, offset + 8 + length);
+        final nullLoc = data.indexOf(0);
+        if (nullLoc != -1 && nullLoc + 1 < data.length) {
+          final keyword = utf8.decode(data.sublist(0, nullLoc), allowMalformed: true);
+          // compression method is at nullLoc + 1
+          try {
+            final compressedData = data.sublist(nullLoc + 2);
+            final inflated = ZLibDecoder().convert(compressedData);
+            final text = utf8.decode(inflated, allowMalformed: true);
+            metadata[keyword] = text;
+          } catch (e) {
+            print('Error decoding zTXt chunk: $e');
           }
         }
       }
@@ -76,13 +123,42 @@ class PngMetadataParser {
   static Map<String, dynamic> parseParameters(String parameters) {
     final result = <String, dynamic>{};
 
-    // The format roughly is:
+    // JSON 判定
+    final trimmed = parameters.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        final json = jsonDecode(trimmed) as Map<String, dynamic>;
+        
+        // JSON 各項目を標準的なキーに変換、またはそのままコピー
+        result['prompt'] = json['prompt'] ?? '';
+        result['negative_prompt'] = json['negative_prompt'] ?? '';
+        result['steps'] = json['steps'];
+        result['sampler'] = json['sampler_name'];
+        result['cfg_scale'] = json['cfg_scale'];
+        result['seed'] = json['seed'];
+        result['width'] = json['width'];
+        result['height'] = json['height'];
+        result['scheduler'] = json['scheduler'];
+        
+        // その他すべての項目を含める
+        json.forEach((key, value) {
+          if (!result.containsKey(key)) {
+            result[key] = value;
+          }
+        });
+        
+        return result;
+      } catch (e) {
+        print('Error decoding JSON info: $e');
+        // JSON 解析に失敗した場合はテキスト解析へフォールバック
+      }
+    }
+
+    // A1111/Forge テキスト形式のパース
+    // 形式:
     // Prompt
     // Negative prompt: ...
     // Steps: ..., Sampler: ..., ...
-
-    // We strive to find the last line that starts with "Steps: ".
-    // Everything before that is Prompt + Negative Prompt.
 
     final lines = parameters.split('\n');
     int? stepsLineIndex;
@@ -99,15 +175,10 @@ class PngMetadataParser {
 
     if (stepsLineIndex != null) {
       promptAndNegative = lines.sublist(0, stepsLineIndex).join('\n');
-      settingsLine = lines
-          .sublist(stepsLineIndex)
-          .join(
-            '\n',
-          ); // Should handle multi-line settings if any? usually single line.
-      // Actually strictly speaking, the settings are on the last line(s).
+      settingsLine = lines.sublist(stepsLineIndex).join('\n');
     }
 
-    // Split Prompt and Negative Prompt
+    // Prompt と Negative Prompt を分割
     final negativePromptPrefix = 'Negative prompt: ';
     final negativeIndex = promptAndNegative.indexOf(negativePromptPrefix);
 
@@ -121,50 +192,57 @@ class PngMetadataParser {
       result['negative_prompt'] = '';
     }
 
-    // Parse settings line
+    // 設定行のパース
     if (settingsLine.isNotEmpty) {
-      // Create a map from the comma-separated settings
-      // Note: Values can contain commas, so simple split by ", " might be risky but is standard for this format.
-      // Helper to parse key: value
-      final regex = RegExp(r'([\w\s]+):\s*([^,\n]+)(?:,\s*|$)');
-      final matches = regex.allMatches(settingsLine);
-
-      for (final match in matches) {
-        final key = match.group(1)?.trim();
-        final value = match.group(2)?.trim();
-
-        if (key != null && value != null) {
-          switch (key) {
-            case 'Steps':
-              result['steps'] = int.tryParse(value);
-              break;
-            case 'Sampler':
-              result['sampler'] = value;
-              break;
-            case 'CFG scale':
-              result['cfg_scale'] = double.tryParse(value);
-              break;
-            case 'Seed':
-              result['seed'] = int.tryParse(value);
-              break;
-            case 'Size':
-              final sizeParts = value.split('x');
-              if (sizeParts.length == 2) {
-                result['width'] = int.tryParse(sizeParts[0]);
-                result['height'] = int.tryParse(sizeParts[1]);
-              }
-              break;
-            case 'Model':
-              result['model'] = value;
-              break;
-            case 'Model hash':
-              result['model_hash'] = value;
-              break;
-            case 'Schedule':
-            case 'Scheduler':
-              result['scheduler'] = value;
-              break;
-            // Add other keys as needed
+      // カンマによる分割だが、引用符内のカンマは無視する必要がある
+      // シンプルな正規表現では困難なため、手動で分割するか、強化された正規表現を使用
+      // ここでは、よくあるキーのリストを使って分割を改善する例
+      final keys = [
+        'Steps', 'Sampler', 'CFG scale', 'Seed', 'Size', 'Model hash', 'Model',
+        'Batch size', 'Batch pos', 'Denoising strength', 'Clip skip', 
+        'ENSD', 'Hires upscale', 'Hires upscaler', 'Hires steps', 
+        'Lora hashes', 'TI hashes', 'Schedule', 'Scheduler'
+      ];
+      
+      for (final key in keys) {
+        final pattern = RegExp('$key:\\s*([^,]+)(?:,\\s*|\$)');
+        final match = pattern.firstMatch(settingsLine);
+        if (match != null) {
+          final value = match.group(1)?.trim();
+          if (value != null) {
+            switch (key) {
+              case 'Steps':
+                result['steps'] = int.tryParse(value);
+                break;
+              case 'Sampler':
+                result['sampler'] = value;
+                break;
+              case 'CFG scale':
+                result['cfg_scale'] = double.tryParse(value);
+                break;
+              case 'Seed':
+                result['seed'] = int.tryParse(value);
+                break;
+              case 'Size':
+                final sizeParts = value.split('x');
+                if (sizeParts.length == 2) {
+                  result['width'] = int.tryParse(sizeParts[0]);
+                  result['height'] = int.tryParse(sizeParts[1]);
+                }
+                break;
+              case 'Model':
+                result['model'] = value;
+                break;
+              case 'Model hash':
+                result['model_hash'] = value;
+                break;
+              case 'Schedule':
+              case 'Scheduler':
+                result['scheduler'] = value;
+                break;
+              default:
+                result[key.toLowerCase().replaceAll(' ', '_')] = value;
+            }
           }
         }
       }

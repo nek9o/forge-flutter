@@ -221,14 +221,14 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
           color: tag.isLora
               ? fTheme.colors.primary.withAlpha(20)
               : (isHighWeight
-                    ? fTheme.colors.primary.withAlpha(15)
+                    ? fTheme.colors.primary.withAlpha(25)
                     : fTheme.colors.secondary),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: tag.isLora
                 ? fTheme.colors.primary.withAlpha(40)
                 : (isHighWeight
-                      ? fTheme.colors.primary.withAlpha(30)
+                      ? fTheme.colors.primary.withAlpha(50)
                       : fTheme.colors.border.withAlpha(30)),
           ),
         ),
@@ -275,7 +275,7 @@ class _PromptEditorState extends ConsumerState<PromptEditor> {
                       color: tag.isLora
                           ? fTheme.colors.primary
                           : (isHighWeight
-                                ? fTheme.colors.primaryForeground
+                                ? fTheme.colors.primary
                                 : fTheme.colors.foreground),
                       fontSize: 13,
                     ),

@@ -11,6 +11,8 @@ import '../../prompt/store/prompt_store.dart';
 import '../../settings/store/settings_store.dart';
 import '../services/png_metadata_parser.dart';
 
+const _sentinel = Object();
+
 enum GenerationStatus { idle, generating, completed, error }
 
 class PreviewState {
@@ -42,7 +44,7 @@ class PreviewState {
     double? progress,
     List<Uint8List>? images,
     int? currentIndex,
-    String? errorMessage,
+    Object? errorMessage = _sentinel,
     Map<String, dynamic>? metadata,
     String? rawParameters,
   }) {
@@ -51,7 +53,9 @@ class PreviewState {
       progress: progress ?? this.progress,
       images: images ?? this.images,
       currentIndex: currentIndex ?? this.currentIndex,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: errorMessage == _sentinel
+          ? this.errorMessage
+          : (errorMessage as String?),
       metadata: metadata ?? this.metadata,
       rawParameters: rawParameters ?? this.rawParameters,
     );
@@ -86,7 +90,9 @@ class PreviewStore extends StateNotifier<PreviewState> {
         ...settings.toJson(),
       };
 
-      final base64Images = await client.txt2img(params);
+      final response = await client.txt2img(params);
+      final List<String> base64Images = List<String>.from(response['images'] ?? []);
+      final String? infoString = response['info'];
 
       _stopProgressPolling();
 
@@ -99,12 +105,18 @@ class PreviewStore extends StateNotifier<PreviewState> {
           final imageBytes = base64Decode(base64Image);
           decodedImages.add(imageBytes);
 
-          // 最初の画像からのみメタデータを取得（通常は全画像で共通または代表として扱う）
+          // APIのinfoから、または最初の画像からメタデータを取得
           if (decodedImages.length == 1) {
-            final pngInfo = PngMetadataParser.parse(imageBytes);
-            if (pngInfo.containsKey('parameters')) {
-              rawParameters = pngInfo['parameters'];
-              metadata = PngMetadataParser.parseParameters(rawParameters!);
+            if (infoString != null && infoString.isNotEmpty) {
+              rawParameters = infoString;
+              metadata = PngMetadataParser.parseParameters(infoString);
+            } else {
+              // フォールバック: 画像バイナリから取得を試みる
+              final pngInfo = PngMetadataParser.parse(imageBytes);
+              if (pngInfo.containsKey('parameters')) {
+                rawParameters = pngInfo['parameters'];
+                metadata = PngMetadataParser.parseParameters(rawParameters!);
+              }
             }
           }
         } catch (e) {

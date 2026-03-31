@@ -136,22 +136,75 @@ class PngInfoPane extends ConsumerWidget {
                 fontSize: 12,
               ),
             ),
-            const SizedBox(height: 6),
-            SelectableText(
-              effectiveRawParameters
-                      ?.split('\n')
-                      .lastWhere(
-                        (line) => line.startsWith('Steps: '),
-                        orElse: () => '',
-                      ) ??
-                  '',
-              style: GoogleFonts.geistMono(
-                fontSize: 12,
-                color: fTheme.colors.foreground,
-              ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (effectiveMetadata.containsKey('steps'))
+                  _buildSettingChip(context, 'Steps', effectiveMetadata['steps'].toString()),
+                if (effectiveMetadata.containsKey('sampler'))
+                  _buildSettingChip(context, 'Sampler', effectiveMetadata['sampler'].toString()),
+                if (effectiveMetadata.containsKey('cfg_scale'))
+                  _buildSettingChip(context, 'CFG', effectiveMetadata['cfg_scale'].toString()),
+                if (effectiveMetadata.containsKey('seed'))
+                  _buildSettingChip(context, 'Seed', effectiveMetadata['seed'].toString()),
+                if (effectiveMetadata.containsKey('width') && effectiveMetadata.containsKey('height'))
+                  _buildSettingChip(context, 'Size', '${effectiveMetadata['width']}x${effectiveMetadata['height']}'),
+                if (effectiveMetadata.containsKey('model'))
+                  _buildSettingChip(context, 'Model', effectiveMetadata['model'].toString()),
+              ],
             ),
+            if (!effectiveMetadata.containsKey('steps') && effectiveRawParameters != null) ...[
+              const SizedBox(height: 6),
+              SelectableText(
+                effectiveRawParameters
+                        .split('\n')
+                        .lastWhere(
+                          (line) => line.trim().startsWith('Steps: '),
+                          orElse: () => '',
+                        ),
+                style: GoogleFonts.geistMono(
+                  fontSize: 12,
+                  color: fTheme.colors.foreground,
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSettingChip(BuildContext context, String label, String value) {
+    final fTheme = FTheme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: fTheme.colors.secondary.withAlpha(80),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: fTheme.colors.border.withAlpha(40)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: fTheme.colors.mutedForeground,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.geistMono(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: fTheme.colors.foreground,
+            ),
+          ),
+        ],
       ),
     );
   }

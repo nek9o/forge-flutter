@@ -172,12 +172,12 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
       child: Container(
         decoration: BoxDecoration(
           color: isHighWeight
-              ? fTheme.colors.error.withAlpha(15)
+              ? fTheme.colors.error.withAlpha(25)
               : fTheme.colors.secondary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isHighWeight
-                ? fTheme.colors.error.withAlpha(30)
+                ? fTheme.colors.error.withAlpha(50)
                 : fTheme.colors.border.withAlpha(30),
           ),
         ),
@@ -213,7 +213,7 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
                     tag.text,
                     style: GoogleFonts.geistMono(
                       color: isHighWeight
-                          ? fTheme.colors.errorForeground
+                          ? fTheme.colors.error
                           : fTheme.colors.foreground,
                       fontSize: 13,
                     ),

@@ -50,7 +50,7 @@ If you see the Swagger UI with a list of API endpoints, the API is working corre
 
 ### Using a Release Build
 
-1. Download the latest ZIP from the [Releases page](https://github.com/fal-114514/forge-flutter/releases)
+1. Download the latest ZIP from the [Releases page](https://github.com/nek9o/forge-flutter/releases)
 2. Extract to any folder
 3. Run `forge_flutter.exe`
 
@@ -58,7 +58,7 @@ If you see the Swagger UI with a list of API endpoints, the API is working corre
 
 ```bash
 # Clone the repository
-git clone https://github.com/fal-114514/forge-flutter.git
+git clone https://github.com/nek9o/forge-flutter.git
 cd forge-flutter
 
 # Install dependencies

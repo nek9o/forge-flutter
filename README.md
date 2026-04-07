@@ -1,7 +1,7 @@
 # Forge Flutter Client
 
-[![Version](https://img.shields.io/badge/version-v2026.4.1--1-orange)](https://github.com/fal-114514/forge-flutter)
-[![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/fal-114514/forge-flutter)
+[![Version](https://img.shields.io/badge/version-v2026.4.1--1-orange)](https://github.com/nek9o/forge-flutter)
+[![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/nek9o/forge-flutter)
 [![License](https://img.shields.io/badge/license-Blue%20Oak%201.0.0-blue)](LICENSE.md)
 
 **[日本語版 README はこちら](README.ja.md)**

@@ -50,7 +50,7 @@ Swagger UI が表示され、APIエンドポイントの一覧が確認できれ
 
 ### リリースビルドを使用する場合
 
-1. [Releases ページ](https://github.com/fal-114514/forge-flutter/releases) から最新の ZIP ファイルをダウンロード
+1. [Releases ページ](https://github.com/nek9o/forge-flutter/releases) から最新の ZIP ファイルをダウンロード
 2. 任意のフォルダに解凍
 3. `forge_flutter.exe` を実行
 
@@ -58,7 +58,7 @@ Swagger UI が表示され、APIエンドポイントの一覧が確認できれ
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/fal-114514/forge-flutter.git
+git clone https://github.com/nek9o/forge-flutter.git
 cd forge-flutter
 
 # 依存関係を解決

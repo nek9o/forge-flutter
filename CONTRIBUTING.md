@@ -6,7 +6,7 @@ Thank you for your interest in Forge Flutter Client! This project is currently i
 
 ### 1. Bug Reports
 
-If you find a bug, please report it via [GitHub Issues](https://github.com/fal-114514/forge-flutter/issues). When reporting, please include the following information:
+If you find a bug, please report it via [GitHub Issues](https://github.com/nek9o/forge-flutter/issues). When reporting, please include the following information:
 
 - Your Windows version
 - SD-WebUI-Forge version

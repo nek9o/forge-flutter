@@ -138,6 +138,9 @@ class L {
     'refresh': '更新',
     'link_stability_matrix': 'StabilityMatrix を連携',
     'no_png_info': 'PNG Info が見つかりません',
+    'update_available': 'アップデートがあります',
+    'update_available_body': '新しいバージョンが利用可能です。',
+    'download_page': 'ダウンロード画面へ',
   };
 
   // ── English ──
@@ -263,5 +266,8 @@ class L {
     'refresh': 'Refresh',
     'link_stability_matrix': 'Link StabilityMatrix',
     'no_png_info': 'No PNG Info available',
+    'update_available': 'Update Available',
+    'update_available_body': 'A new version is available.',
+    'download_page': 'Download Page',
   };
 }

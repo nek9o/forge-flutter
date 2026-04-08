@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/l10n.dart';
 import '../../../core/layout_preferences.dart';
 import '../../../core/pane_resize_stripe.dart';
+import '../../../core/services/update_service.dart';
 import '../../preview/ui/preview_pane.dart';
 import '../../prompt/ui/prompt_pane.dart';
 import '../../settings/store/settings_store.dart';
@@ -28,6 +30,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   double _settingsWidth = 280;
   double _previewSplit = 0.5;
   bool _isDialogShown = false;
+  bool _isUpdateDialogShown = false;
   bool _initialized = false;
 
   @override
@@ -65,6 +68,46 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
     final fTheme = FTheme.of(context);
+
+    // アップデート確認のダイアログ制御
+    ref.listen<AsyncValue<UpdateInfo>>(updateCheckFutureProvider, (previous, next) {
+      if (next is AsyncData && next.value != null && next.value!.hasUpdate) {
+        if (!_isUpdateDialogShown) {
+          _isUpdateDialogShown = true;
+          showFDialog(
+            context: context,
+            builder: (context, style, animation) => FDialog(
+              style: style,
+              animation: animation,
+              direction: Axis.horizontal,
+              title: Text(L.of(locale, 'update_available')),
+              body: Text('${L.of(locale, "update_available_body")} (${next.value!.latestVersion})'),
+              actions: [
+                FButton(
+                  variant: FButtonVariant.outline,
+                  onPress: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(L.of(locale, 'cancel')),
+                ),
+                FButton(
+                  onPress: () async {
+                    final url = Uri.parse(next.value!.releaseUrl);
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url);
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text(L.of(locale, 'download_page')),
+                ),
+              ],
+            ),
+          ).then((_) => _isUpdateDialogShown = false);
+        }
+      }
+    });
 
     // 接続確認中のダイアログ制御
     ref.listen<bool>(isReconnectingProvider, (previous, next) {

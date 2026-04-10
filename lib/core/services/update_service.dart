@@ -24,7 +24,7 @@ class UpdateService {
       receiveTimeout: const Duration(seconds: 10),
     ),
   );
-  static const String _repoUrl = 'https://api.github.com/repos/nek9o/forge-flutter/releases/latest';
+  static const String _repoUrl = 'https://api.github.com/repos/nek9o/forge-flutter/releases';
 
   Future<UpdateInfo> checkForUpdates() async {
     try {
@@ -37,15 +37,42 @@ class UpdateService {
       final currentVersionString = '$versionOnly+${packageInfo.buildNumber}';
       final currentVersion = Version.parse(currentVersionString);
 
-      // 最新のリリースを取得
+      // 最新のリリースを取得 (/releases/latest はプレリリースを無視するため、/releases を使用)
       final response = await _dio.get(_repoUrl);
       if (response.statusCode == 200) {
-        final data = response.data;
-        final tagName = data['tag_name'] as String;
-        final releaseUrl = data['html_url'] as String;
+        final List<dynamic> releases = response.data;
+        if (releases.isEmpty) {
+          return UpdateInfo(
+            hasUpdate: false,
+            latestVersion: Version.none,
+            releaseUrl: '',
+          );
+        }
+
+        // GitHub APIは作成日時の降順なので、最初に見つかったdraftでないものが最新
+        Map<String, dynamic>? latestRelease;
+        for (final release in releases) {
+          if (release['draft'] == false) {
+            latestRelease = release as Map<String, dynamic>;
+            break;
+          }
+        }
+
+        if (latestRelease == null) {
+          return UpdateInfo(
+            hasUpdate: false,
+            latestVersion: Version.none,
+            releaseUrl: '',
+          );
+        }
+
+        final tagName = latestRelease['tag_name'] as String;
+        final releaseUrl = latestRelease['html_url'] as String;
 
         // "2026.4.9-1" の "-" を "+" に置換してビルド番号として扱う
-        final latestVersionString = tagName.replaceAll('-', '+');
+        // 万が一 "v" から始まるタグ名の場合は取り除く
+        final cleanTagName = tagName.startsWith('v') ? tagName.substring(1) : tagName;
+        final latestVersionString = cleanTagName.replaceAll('-', '+');
         final latestVersion = Version.parse(latestVersionString);
 
         // pub_semverはビルド番号も含めて比較してくれる

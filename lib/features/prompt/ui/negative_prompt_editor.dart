@@ -1,15 +1,13 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:native_context_menu/native_context_menu.dart' as ncm;
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
 import '../models/prompt_tag.dart';
 import '../store/prompt_store.dart';
+import 'components/prompt_edit_dialog.dart';
+import 'components/prompt_input_field.dart';
+import 'components/prompt_tag_chip.dart';
 
 class NegativePromptEditor extends ConsumerStatefulWidget {
   const NegativePromptEditor({super.key});
@@ -64,55 +62,12 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // テキスト入力エリア
-        ncm.ContextMenuRegion(
-          onItemSelected: (item) async {
-            if (item.title == L.of(locale, 'paste')) {
-              final data = await Clipboard.getData('text/plain');
-              if (data?.text != null) {
-                final current = _textController.text;
-                final selection = _textController.selection;
-                final newText = current.replaceRange(
-                  selection.start == -1 ? current.length : selection.start,
-                  selection.end == -1 ? current.length : selection.end,
-                  data!.text!,
-                );
-                _textController.text = newText;
-                _textController.selection = TextSelection.collapsed(
-                  offset:
-                      (selection.start == -1
-                          ? current.length
-                          : selection.start) +
-                      data.text!.length,
-                );
-                _onTextChanged(newText);
-              }
-            } else if (item.title == L.of(locale, 'clear')) {
-              _textController.clear();
-              _onTextChanged('');
-            } else if (item.title == L.of(locale, 'select_all')) {
-              _textController.selection = TextSelection(
-                baseOffset: 0,
-                extentOffset: _textController.text.length,
-              );
-              _focusNode.requestFocus();
-            }
-          },
-          menuItems: [
-            ncm.MenuItem(title: L.of(locale, 'paste')),
-            ncm.MenuItem(title: L.of(locale, 'clear')),
-            ncm.MenuItem(title: L.of(locale, 'select_all')),
-          ],
-          child: FTextField(
-            contextMenuBuilder: (context, editableTextState) =>
-                const SizedBox.shrink(),
-            control: FTextFieldControl.managed(
-              controller: _textController,
-              onChange: (value) => _onTextChanged(value.text),
-            ),
-            focusNode: _focusNode,
-            hint: L.of(locale, 'negative_prompt_hint'),
-            maxLines: null,
-          ),
+        PromptInputField(
+          controller: _textController,
+          focusNode: _focusNode,
+          hintText: L.of(locale, 'negative_prompt_hint'),
+          locale: locale,
+          onTextChanged: _onTextChanged,
         ),
         const SizedBox(height: 12),
         // チップ表示エリア
@@ -147,12 +102,40 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
                       itemBuilder: (context, index) {
                         final tag = tags[index];
                         return Container(
-                          key: ValueKey('neg_${tag.text}_$index'),
+                          key: ValueKey('neg_${tag.id}_$index'),
                           margin: const EdgeInsets.symmetric(
                             vertical: 2,
                             horizontal: 2,
                           ),
-                          child: _buildPromptChip(context, index, tag),
+                          child: PromptTagChip(
+                            index: index,
+                            tag: tag,
+                            isNegative: true,
+                            onEdit: () => showPromptEditDialog(
+                              context: context,
+                              locale: locale,
+                              tag: tag,
+                              isNegative: true,
+                              onSave: (updatedTag) {
+                                ref
+                                    .read(negativePromptTagsProvider.notifier)
+                                    .updateTag(index, updatedTag);
+                                _syncTagsToText();
+                              },
+                            ),
+                            onWeightChanged: (newWeight) {
+                              ref
+                                  .read(negativePromptTagsProvider.notifier)
+                                  .updateTagWeight(index, newWeight);
+                              _syncTagsToText();
+                            },
+                            onRemove: () {
+                              ref
+                                  .read(negativePromptTagsProvider.notifier)
+                                  .removeTag(index);
+                              _syncTagsToText();
+                            },
+                          ),
                         );
                       },
                     ),
@@ -162,169 +145,5 @@ class _NegativePromptEditorState extends ConsumerState<NegativePromptEditor> {
       ],
     );
   }
-
-  Widget _buildPromptChip(BuildContext context, int index, PromptTag tag) {
-    final fTheme = FTheme.of(context);
-    final isHighWeight = double.parse(tag.weight.toStringAsFixed(2)) > 1.0;
-
-    return FTappable(
-      onPress: () => _showEditDialog(context, index, tag),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isHighWeight
-              ? fTheme.colors.error.withAlpha(25)
-              : fTheme.colors.secondary,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isHighWeight
-                ? fTheme.colors.error.withAlpha(50)
-                : fTheme.colors.border.withAlpha(30),
-          ),
-        ),
-        child: Listener(
-          onPointerSignal: (event) {
-            if (event is PointerScrollEvent &&
-                HardwareKeyboard.instance.isShiftPressed) {
-              double delta = event.scrollDelta.dy > 0 ? -0.05 : 0.05;
-              double newWeight = (tag.weight + delta).clamp(0.1, 5.0);
-              newWeight = double.parse(newWeight.toStringAsFixed(2));
-
-              ref
-                  .read(negativePromptTagsProvider.notifier)
-                  .updateTagWeight(index, newWeight);
-              _syncTagsToText();
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                ReorderableDragStartListener(
-                  index: index,
-                  child: PhosphorIcon(
-                    PhosphorIcons.dotsSixVertical(),
-                    color: fTheme.colors.mutedForeground,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    tag.text,
-                    style: GoogleFonts.geistMono(
-                      color: isHighWeight
-                          ? fTheme.colors.error
-                          : fTheme.colors.foreground,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: fTheme.colors.muted,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    tag.weight.toStringAsFixed(2),
-                    style: GoogleFonts.geistMono(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: fTheme.colors.mutedForeground,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                FTappable(
-                  onPress: () {
-                    ref
-                        .read(negativePromptTagsProvider.notifier)
-                        .removeTag(index);
-                    _syncTagsToText();
-                  },
-                  child: PhosphorIcon(
-                    PhosphorIcons.x(),
-                    size: 16,
-                    color: fTheme.colors.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showEditDialog(BuildContext context, int index, PromptTag tag) {
-    final locale = ref.read(localeProvider);
-    final textController = TextEditingController(text: tag.text);
-    final weightController = TextEditingController(
-      text: tag.weight.toStringAsFixed(2),
-    );
-
-    showFDialog(
-      context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style,
-        animation: animation,
-        direction: Axis.vertical,
-        title: Text(L.of(locale, 'edit_chip')),
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FLabel(
-              axis: Axis.vertical,
-              label: Text(L.of(locale, 'negative_prompt')),
-              child: FTextField(
-                control: FTextFieldControl.managed(controller: textController),
-              ),
-            ),
-            const SizedBox(height: 16),
-            FLabel(
-              axis: Axis.vertical,
-              label: Text(L.of(locale, 'weight')),
-              description: Text(L.of(locale, 'weight_range_helper')),
-              child: FTextField(
-                control: FTextFieldControl.managed(
-                  controller: weightController,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          FButton(
-            variant: FButtonVariant.outline,
-            onPress: () => Navigator.of(context).pop(),
-            child: Text(L.of(locale, 'cancel')),
-          ),
-          FButton(
-            onPress: () {
-              final newText = textController.text.trim();
-              final newWeight =
-                  double.tryParse(weightController.text) ?? tag.weight;
-
-              if (newText.isNotEmpty) {
-                final updatedTag = PromptTag(
-                  text: newText,
-                  weight: newWeight.clamp(0.1, 5.0),
-                );
-                ref
-                    .read(negativePromptTagsProvider.notifier)
-                    .updateTag(index, updatedTag);
-                _syncTagsToText();
-              }
-
-              Navigator.of(context).pop();
-            },
-            child: Text(L.of(locale, 'save')),
-          ),
-        ],
-      ),
-    );
-  }
 }
+

@@ -30,8 +30,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   double _settingsWidth = 280;
   double _previewSplit = 0.5;
   bool _isDialogShown = false;
-  bool _isUpdateDialogShown = false;
   bool _initialized = false;
+  // 接続中ダイアログのContextを保持し、確実にポップできるようにする
+  BuildContext? _reconnectDialogContext;
+  // アップデートトーストを1回だけ表示するためのフラグ
+  bool _isUpdateToastShown = false;
 
   @override
   void initState() {
@@ -69,73 +72,99 @@ class _HomePageState extends ConsumerState<HomePage> {
     final locale = ref.watch(localeProvider);
     final fTheme = FTheme.of(context);
 
-    // アップデート確認のダイアログ制御
-    ref.listen<AsyncValue<UpdateInfo>>(updateCheckFutureProvider, (previous, next) {
+    // アップデート確認のトースト制御
+    // 1回だけ右上にトーストを表示し、ユーザーが閉じるまで残す
+    ref.listen<AsyncValue<UpdateInfo>>(updateCheckFutureProvider, (
+      previous,
+      next,
+    ) {
       if (next is AsyncData && next.value != null && next.value!.hasUpdate) {
-        if (!_isUpdateDialogShown) {
-          _isUpdateDialogShown = true;
-          showFDialog(
+        if (!_isUpdateToastShown) {
+          _isUpdateToastShown = true;
+          showFToast(
             context: context,
-            builder: (context, style, animation) => FDialog(
-              style: style,
-              animation: animation,
-              direction: Axis.horizontal,
-              title: Text(L.of(locale, 'update_available')),
-              body: Text('${L.of(locale, "update_available_body")} (${next.value!.latestVersion})'),
-              actions: [
+            alignment: FToastAlignment.topRight,
+            // 自動で消えさせず、ユーザーが明示的に閉じるか操作するまで表示する
+            duration: null,
+            icon: Icon(PhosphorIcons.arrowCircleUp()),
+            title: Text(L.of(locale, 'update_available')),
+            description: Text(
+              '${L.of(locale, 'update_available_body')} (${next.value!.latestVersion})',
+            ),
+            suffixBuilder: (context, entry) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 FButton(
-                  variant: FButtonVariant.outline,
-                  onPress: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(L.of(locale, 'cancel')),
-                ),
-                FButton(
+                  size: FButtonSizeVariant.sm,
                   onPress: () async {
+                    entry.dismiss();
                     final url = Uri.parse(next.value!.releaseUrl);
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url);
                     }
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                    }
                   },
                   child: Text(L.of(locale, 'download_page')),
                 ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: entry.dismiss,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      PhosphorIcons.x(),
+                      size: 20,
+                      color: fTheme.colors.foreground,
+                    ),
+                  ),
+                ),
               ],
             ),
-          ).then((_) => _isUpdateDialogShown = false);
+          );
         }
       }
     });
 
     // 接続確認中のダイアログ制御
+    // ダイアログ自身のBuildContextをキャプチャして、
+    // ナビゲーションスタックの状態に関わらず確実にポップできるようにする
     ref.listen<bool>(isReconnectingProvider, (previous, next) {
       if (next && !_isDialogShown) {
         _isDialogShown = true;
         showFDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context, style, animation) => FDialog(
-            style: style,
-            animation: animation,
-            direction: Axis.vertical,
-            title: Text(L.of(locale, 'checking_connection')),
-            body: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 300),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [FProgress(), SizedBox(height: 16)],
+          builder: (dialogContext, style, animation) {
+            // ダイアログのContextをフィールドに保持しておく
+            _reconnectDialogContext = dialogContext;
+            return FDialog(
+              style: style,
+              animation: animation,
+              direction: Axis.vertical,
+              title: Text(L.of(locale, 'checking_connection')),
+              body: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 300),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [FProgress(), SizedBox(height: 16)],
+                  ),
                 ),
               ),
-            ),
-            actions: const [],
-          ),
+              actions: const [],
+            );
+          },
         ).then((_) => _isDialogShown = false);
       } else if (!next && _isDialogShown) {
-        Navigator.of(context, rootNavigator: true).pop();
+        // キャプチャしたダイアログのContextが有効であればそこからポップし、
+        // そうでなければフォールバックとしてrootNavigatorを使う
+        final dialogCtx = _reconnectDialogContext;
+        if (dialogCtx != null && dialogCtx.mounted) {
+          Navigator.of(dialogCtx).pop();
+        } else {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+        _reconnectDialogContext = null;
         _isDialogShown = false;
       }
     });
@@ -191,194 +220,205 @@ class _HomePageState extends ConsumerState<HomePage> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                    // サイドツールバー
-                    Container(
-                      width: sidebarWidth,
-                      decoration: BoxDecoration(
-                        color: fTheme.colors.background,
-                        border: Border(
-                          right: BorderSide(
-                            color: fTheme.colors.border.withAlpha(120),
-                            width: 0.5,
+                        // サイドツールバー
+                        Container(
+                          width: sidebarWidth,
+                          decoration: BoxDecoration(
+                            color: fTheme.colors.background,
+                            border: Border(
+                              right: BorderSide(
+                                color: fTheme.colors.border.withAlpha(120),
+                                width: 0.5,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 16),
+                              // アプリアイコン
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 24),
+                                child: PhosphorIcon(
+                                  PhosphorIcons.diamondsFour(
+                                    PhosphorIconsStyle.fill,
+                                  ),
+                                  color: fTheme.colors.primary,
+                                  size: 28,
+                                ),
+                              ),
+                              // 設定トグル
+                              _buildToolbarButton(
+                                context,
+                                icon: PhosphorIcons.gear(),
+                                isActive: _settingsExpanded,
+                                tooltip: L.of(locale, 'settings_panel'),
+                                onPressed: () {
+                                  setState(() {
+                                    _settingsExpanded = !_settingsExpanded;
+                                    _saveLayoutPreferences();
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              // システムモニタートグル
+                              _buildToolbarButton(
+                                context,
+                                icon: PhosphorIcons.chartLine(),
+                                isActive: _showMonitor,
+                                tooltip: L.of(locale, 'system_monitor'),
+                                onPressed: () {
+                                  setState(() {
+                                    _showMonitor = !_showMonitor;
+                                    if (_showMonitor && !_settingsExpanded) {
+                                      _settingsExpanded = true;
+                                    }
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 12),
+
+                              // 詳細設定ボタン
+                              _buildToolbarButton(
+                                context,
+                                icon: PhosphorIcons.sliders(),
+                                isActive: false,
+                                tooltip: L.of(
+                                  locale,
+                                  'detailed_settings_tooltip',
+                                ),
+                                onPressed: () {
+                                  showFDialog(
+                                    context: context,
+                                    builder: (context, style, animation) =>
+                                        DetailedSettingsDialog(
+                                          style: style,
+                                          animation: animation,
+                                        ),
+                                  );
+                                },
+                              ),
+                              const Spacer(),
+                              // 言語切り替え
+                              _buildToolbarButton(
+                                context,
+                                icon: PhosphorIcons.translate(),
+                                isActive: false,
+                                tooltip: L.of(locale, 'language'),
+                                label: locale == AppLocale.ja ? 'JA' : 'EN',
+                                onPressed: () {
+                                  ref
+                                      .read(localeProvider.notifier)
+                                      .state = locale == AppLocale.ja
+                                      ? AppLocale.en
+                                      : AppLocale.ja;
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              // ライセンス情報
+                              _buildToolbarButton(
+                                context,
+                                icon: PhosphorIcons.scroll(),
+                                isActive: false,
+                                tooltip: L.of(locale, 'license_info'),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const OssLicensePage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                        // 設定ペイン（幅はホーム側のリサイズに追従）
+                        SizedBox(
+                          width: _settingsExpanded ? settingsPaneWidth : 0,
+                          child: _settingsExpanded
+                              ? SettingsPane(showMonitor: _showMonitor)
+                              : const SizedBox.shrink(),
+                        ),
+                        if (_settingsExpanded)
+                          SizedBox(
+                            width: dividerWidth,
+                            child: const PaneResizeStripe(),
+                          ),
+                        SizedBox(
+                          width: previewWidth,
+                          child: const PreviewPane(),
+                        ),
+                        SizedBox(
+                          width: dividerWidth,
+                          child: const PaneResizeStripe(),
+                        ),
+                        SizedBox(width: promptWidth, child: const PromptPane()),
+                      ],
+                    ),
+                    // --- リサイズハンドルのオーバーレイ ---
+                    if (_settingsExpanded)
+                      Positioned(
+                        left: sidebarWidth + settingsPaneWidth - 3.5,
+                        top: 0,
+                        bottom: 0,
+                        width: 8.0,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.resizeColumn,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onHorizontalDragUpdate: (details) {
+                              setState(() {
+                                _settingsWidth =
+                                    (_settingsWidth + details.delta.dx).clamp(
+                                      minSettingsWidth,
+                                      maxSettingsWidth,
+                                    );
+                              });
+                            },
+                            onHorizontalDragEnd: (details) {
+                              _saveLayoutPreferences();
+                            },
+                            child: Container(color: Colors.transparent),
                           ),
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 16),
-                          // アプリアイコン
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 24),
-                            child: PhosphorIcon(
-                              PhosphorIcons.diamondsFour(
-                                PhosphorIconsStyle.fill,
-                              ),
-                              color: fTheme.colors.primary,
-                              size: 28,
-                            ),
-                          ),
-                          // 設定トグル
-                          _buildToolbarButton(
-                            context,
-                            icon: PhosphorIcons.gear(),
-                            isActive: _settingsExpanded,
-                            tooltip: L.of(locale, 'settings_panel'),
-                            onPressed: () {
-                              setState(() {
-                                _settingsExpanded = !_settingsExpanded;
-                                _saveLayoutPreferences();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          // システムモニタートグル
-                          _buildToolbarButton(
-                            context,
-                            icon: PhosphorIcons.chartLine(),
-                            isActive: _showMonitor,
-                            tooltip: L.of(locale, 'system_monitor'),
-                            onPressed: () {
-                              setState(() {
-                                _showMonitor = !_showMonitor;
-                                if (_showMonitor && !_settingsExpanded) {
-                                  _settingsExpanded = true;
-                                }
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 12),
-
-                          // 詳細設定ボタン
-                          _buildToolbarButton(
-                            context,
-                            icon: PhosphorIcons.sliders(),
-                            isActive: false,
-                            tooltip: L.of(locale, 'detailed_settings_tooltip'),
-                            onPressed: () {
-                              showFDialog(
-                                context: context,
-                                builder: (context, style, animation) =>
-                                    DetailedSettingsDialog(
-                                      style: style,
-                                      animation: animation,
-                                    ),
-                              );
-                            },
-                          ),
-                          const Spacer(),
-                          // 言語切り替え
-                          _buildToolbarButton(
-                            context,
-                            icon: PhosphorIcons.translate(),
-                            isActive: false,
-                            tooltip: L.of(locale, 'language'),
-                            label: locale == AppLocale.ja ? 'JA' : 'EN',
-                            onPressed: () {
-                              ref
-                                  .read(localeProvider.notifier)
-                                  .state = locale == AppLocale.ja
-                                  ? AppLocale.en
-                                  : AppLocale.ja;
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          // ライセンス情報
-                          _buildToolbarButton(
-                            context,
-                            icon: PhosphorIcons.scroll(),
-                            isActive: false,
-                            tooltip: L.of(locale, 'license_info'),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const OssLicensePage(),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                        ],
+                    Positioned(
+                      left:
+                          sidebarWidth +
+                          (_settingsExpanded
+                              ? settingsPaneWidth + dividerWidth
+                              : 0.0) +
+                          previewWidth -
+                          3.5,
+                      top: 0,
+                      bottom: 0,
+                      width: 8.0,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.resizeColumn,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onHorizontalDragUpdate: (details) {
+                            if (clampedAvailable <= 0) return;
+                            setState(() {
+                              _previewSplit =
+                                  (_previewSplit +
+                                          (details.delta.dx / clampedAvailable))
+                                      .clamp(0.0, 1.0);
+                            });
+                          },
+                          onHorizontalDragEnd: (details) {
+                            _saveLayoutPreferences();
+                          },
+                          child: Container(color: Colors.transparent),
+                        ),
                       ),
                     ),
-                    // 設定ペイン（幅はホーム側のリサイズに追従）
-                    SizedBox(
-                      width: _settingsExpanded ? settingsPaneWidth : 0,
-                      child: _settingsExpanded
-                          ? SettingsPane(showMonitor: _showMonitor)
-                          : const SizedBox.shrink(),
-                    ),
-                    if (_settingsExpanded)
-                      SizedBox(
-                        width: dividerWidth,
-                        child: const PaneResizeStripe(),
-                      ),
-                    SizedBox(width: previewWidth, child: const PreviewPane()),
-                    SizedBox(
-                      width: dividerWidth,
-                      child: const PaneResizeStripe(),
-                    ),
-                    SizedBox(width: promptWidth, child: const PromptPane()),
                   ],
                 ),
-                // --- リサイズハンドルのオーバーレイ ---
-                if (_settingsExpanded)
-                  Positioned(
-                    left: sidebarWidth + settingsPaneWidth - 3.5,
-                    top: 0,
-                    bottom: 0,
-                    width: 8.0,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.resizeColumn,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onHorizontalDragUpdate: (details) {
-                          setState(() {
-                            _settingsWidth =
-                                (_settingsWidth + details.delta.dx).clamp(
-                                  minSettingsWidth,
-                                  maxSettingsWidth,
-                                );
-                          });
-                        },
-                        onHorizontalDragEnd: (details) {
-                          _saveLayoutPreferences();
-                        },
-                        child: Container(color: Colors.transparent),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  left: sidebarWidth +
-                      (_settingsExpanded ? settingsPaneWidth + dividerWidth : 0.0) +
-                      previewWidth -
-                      3.5,
-                  top: 0,
-                  bottom: 0,
-                  width: 8.0,
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.resizeColumn,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onHorizontalDragUpdate: (details) {
-                        if (clampedAvailable <= 0) return;
-                        setState(() {
-                          _previewSplit = (_previewSplit +
-                                  (details.delta.dx / clampedAvailable))
-                              .clamp(0.0, 1.0);
-                        });
-                      },
-                      onHorizontalDragEnd: (details) {
-                        _saveLayoutPreferences();
-                      },
-                      child: Container(color: Colors.transparent),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
+              );
             } else {
               return FTabs(
                 children: [
@@ -447,7 +487,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             borderRadius: BorderRadius.circular(8),
             child: InkWell(
               onTap: onPressed,
-              hoverColor: fTheme.colors.foreground.withOpacity(0.1),
+              hoverColor: fTheme.colors.foreground.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 width: 44,

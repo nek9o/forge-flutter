@@ -60,7 +60,7 @@ class MyApp extends ConsumerWidget {
           fontFamily: 'packages/forui_assets/Inter',
         ),
         builder: (context, child) =>
-            FTheme(data: fThemeData, child: child!),
+            FTheme(data: fThemeData, child: FToaster(child: child!)),
         home: const HomePage(),
       ),
     );

@@ -68,3 +68,4 @@ test/
 *_result.txt
 temp_diff.txt
 .env
+docs/comfyui_migration_analysis*

@@ -18,6 +18,7 @@ const allDependencies = <Package>[
   _async,
   _boolean_selector,
   _characters,
+  _charcode,
   _checked_yaml,
   _cli_config,
   _cli_util,
@@ -94,11 +95,13 @@ const allDependencies = <Package>[
   _platform,
   _plugin_platform_interface,
   _pool,
+  _prompts,
   _pub_semver,
   _pubspec_parse,
   _reorderables,
   _retry,
   _riverpod,
+  _rps,
   _safe_url_check,
   _screen_retriever,
   _screen_retriever_linux,
@@ -184,7 +187,8 @@ const dependencies = <Package>[
 const devDependencies = <Package>[
   _flutter_test,
   _flutter_lints,
-  _dart_pubspec_licenses
+  _dart_pubspec_licenses,
+  _rps
 ];
 
 /// Package license definition.
@@ -468,6 +472,46 @@ met:
       disclaimer in the documentation and/or other materials provided
       with the distribution.
     * Neither the name of Google LLC nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
+  );
+
+/// charcode 1.4.0
+const _charcode = Package(
+    name: 'charcode',
+    description: 'Constants for ASCII and common non-ASCII character codes. Integer constants corresponding to the code points of individual characters.',
+    repository: 'https://github.com/lrhn/charcode',
+    authors: [],
+    version: '1.4.0',
+    spdxIdentifiers: ['BSD-3-Clause'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [],
+    devDependencies: [PackageRef('test'), PackageRef('lints')],
+    license: '''Copyright 2014, the Dart project authors. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google Inc. nor the names of its
       contributors may be used to endorse or promote products derived
       from this software without specific prior written permission.
 
@@ -4593,6 +4637,41 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.''',
   );
 
+/// prompts 2.0.0
+const _prompts = Package(
+    name: 'prompts',
+    description: 'Rich, simple, synchronous command-line prompt library for Dart.',
+    homepage: 'https://github.com/thosakwe/prompts',
+    authors: ['Tobe O <thosakwe@gmail.com>'],
+    version: '2.0.0',
+    spdxIdentifiers: ['MIT'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('charcode'), PackageRef('io')],
+    devDependencies: [],
+    license: '''MIT License
+
+Copyright (c) 2018 Tobe O
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.''',
+  );
+
 /// pub_semver 2.2.0
 const _pub_semver = Package(
     name: 'pub_semver',
@@ -4943,6 +5022,42 @@ const _riverpod = Package(
     license: '''MIT License
 
 Copyright (c) 2020 Remi Rousselet
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.''',
+  );
+
+/// rps 0.10.0
+const _rps = Package(
+    name: 'rps',
+    description: 'rps (Run Pubspec Script) allows you to define and run scripts from pubspec.yaml.',
+    homepage: 'https://github.com/gonuit/rps',
+    repository: 'https://github.com/gonuit/rps',
+    authors: [],
+    version: '0.10.0',
+    spdxIdentifiers: ['MIT'],
+    isMarkdown: false,
+    isSdk: false,
+    dependencies: [PackageRef('yaml'), PackageRef('path'), PackageRef('ffi'), PackageRef('meta'), PackageRef('pub_semver'), PackageRef('collection'), PackageRef('prompts'), PackageRef('http')],
+    devDependencies: [PackageRef('flutter_lints'), PackageRef('test')],
+    license: '''MIT License
+
+Copyright (c) 2022 Kamil Klyta
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37934,7 +38049,7 @@ const _forge_flutter = Package(
     isMarkdown: true,
     isSdk: false,
     dependencies: [PackageRef('flutter'), PackageRef('cupertino_icons'), PackageRef('flutter_riverpod'), PackageRef('http'), PackageRef('reorderables'), PackageRef('path_provider'), PackageRef('web_socket_channel'), PackageRef('shimmer'), PackageRef('window_manager'), PackageRef('dio'), PackageRef('shared_preferences'), PackageRef('file_picker'), PackageRef('desktop_drop'), PackageRef('multi_split_view'), PackageRef('native_context_menu'), PackageRef('google_fonts'), PackageRef('cross_file'), PackageRef('phosphor_flutter'), PackageRef('forui'), PackageRef('package_info_plus'), PackageRef('url_launcher'), PackageRef('pub_semver')],
-    devDependencies: [PackageRef('flutter_test'), PackageRef('flutter_lints'), PackageRef('dart_pubspec_licenses')],
+    devDependencies: [PackageRef('flutter_test'), PackageRef('flutter_lints'), PackageRef('dart_pubspec_licenses'), PackageRef('rps')],
     license: """Copyright (c) 2026 nek9o
 
 # Blue Oak Model License

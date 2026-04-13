@@ -66,6 +66,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   dart_pubspec_licenses: ^3.2.0
+  rps: ^0.10.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -107,3 +108,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+scripts:
+  # Generate license information
+  gen: dart run dart_pubspec_licenses:generate
+
+  # Build apps for each platform (generates licenses before building)
+  build:windows:
+    $before: dart run rps gen
+    $script: flutter build windows --release
+  build:linux:
+    $before: dart run rps gen
+    $script: flutter build linux --release
+  build:macos:
+    $before: dart run rps gen
+    $script: flutter build macos --release

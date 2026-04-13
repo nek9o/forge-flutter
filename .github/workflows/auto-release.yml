@@ -76,11 +76,8 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Generate Licenses
-        run: dart run dart_pubspec_licenses:generate
-
-      - name: Build Windows
-        run: flutter build windows --release
+      - name: Build Windows (includes License Generation)
+        run: dart run rps build:windows
 
       - name: Create Zip Archive
         shell: pwsh

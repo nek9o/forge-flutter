@@ -64,8 +64,10 @@ cd forge-flutter
 # 依存関係を解決
 flutter pub get
 
-# Windows 向けにビルド＆実行
-flutter run -d windows
+# ビルド（rps を使用）
+dart run rps build:windows # Windows
+# または
+flutter run -d windows    # 通常の実行（デバッグ用）
 ```
 
 > [!NOTE]

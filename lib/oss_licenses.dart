@@ -38039,12 +38039,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.''',
   );
 
-/// forge_flutter 2026.4.13+1
+/// forge_flutter 2026.4.13+2
 const _forge_flutter = Package(
     name: 'forge_flutter',
     description: 'A lightweight desktop client for Forge Classic Neo.',
     authors: [],
-    version: '2026.4.13+1',
+    version: '2026.4.13+2',
     spdxIdentifiers: ['BlueOak-1.0.0'],
     isMarkdown: true,
     isSdk: false,
@@ -38065,7 +38065,7 @@ from liability.
 ## Acceptance
 
 In order to receive this license, you must agree to its
-rules. The rules of this license are both obligations
+rules.  The rules of this license are both obligations
 under that agreement and conditions to your license.
 You must not do anything with this software that triggers
 a rule that you cannot or will not follow.
@@ -38088,7 +38088,7 @@ changes, also gets the text of this license or a link to
 If anyone notifies you in writing that you have not
 complied with [Notices](#notices), you can keep your
 license by taking all practical steps to comply within 30
-days after the notice. If you do not do so, your license
+days after the notice.  If you do not do so, your license
 ends immediately.
 
 ## Patent
@@ -38103,9 +38103,9 @@ No contributor can revoke this license.
 
 ## No Liability
 
-**_As far as the law allows, this software comes as is,
+***As far as the law allows, this software comes as is,
 without any warranty or condition, and no contributor
 will be liable to anyone for any damages related to this
-software or this license, under any kind of legal claim._**""",
+software or this license, under any kind of legal claim.***""",
   );
 

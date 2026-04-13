@@ -1,4 +1,5 @@
 Copyright (c) 2026 nek9o
+Licensed under the Blue Oak Model License 1.0.0
 
 # Blue Oak Model License
 

@@ -106,7 +106,13 @@ class OssLicensePage extends ConsumerWidget {
     );
   }
 
-  static const _allLicenses = [...allDependencies, _ibmPlexSansJp, _geist];
+  static const _allLicenses = [
+    thisPackage,
+    ...allDependencies,
+    ...devDependencies,
+    _ibmPlexSansJp,
+    _geist,
+  ];
 
   static const _ibmPlexSansJp = Package(
     name: 'IBM Plex Sans JP',
@@ -265,7 +271,7 @@ class PackageLicensePage extends ConsumerWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (package.description.isNotEmpty) ...[
                 Text(

@@ -77,7 +77,7 @@ jobs:
         run: flutter pub get
 
       - name: Generate Licenses
-        run: dart run flutter_oss_licenses:generate
+        run: dart run dart_pubspec_licenses:generate
 
       - name: Build Windows
         run: flutter build windows --release

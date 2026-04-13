@@ -69,3 +69,4 @@ test/
 temp_diff.txt
 .env
 docs/comfyui_migration_analysis*
+full_history.patch

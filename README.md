@@ -53,9 +53,27 @@ Existing WebUI solutions (Gradio-based) are feature-rich but resource-heavy. Bro
 
 New to Forge Flutter Client? See the [Quick Start Guide](docs/QUICKSTART.md) for setup instructions.
 
+## Build and Run
+
+This project uses [rps](https://pub.dev/packages/rps) to manage build commands.
+
+```bash
+# Clone the repository
+git clone https://github.com/nek9o/forge-flutter.git
+cd forge-flutter
+
+# Install dependencies (includes rps)
+flutter pub get
+
+# Build for each platform
+dart run rps build:windows  # Windows
+dart run rps build:linux    # Linux
+dart run rps build:macos    # macOS
+```
+
 > [!NOTE]
 > Pre-built binaries are currently available for **Windows only**.
-> Linux / macOS users will need to build from source.
+> Other users will need to build from source using the steps above.
 
 ## Contribution
 

@@ -54,9 +54,27 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 
 初めての方は [クイックスタートガイド](docs/QUICKSTART.ja.md) をご覧ください。
 
+## ビルドと実行
+
+本プロジェクトでは [rps](https://pub.dev/packages/rps) を使用してビルドコマンドを管理しています。
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/nek9o/forge-flutter.git
+cd forge-flutter
+
+# 依存関係を解決（rpsもインストールされます）
+flutter pub get
+
+# 各プラットフォーム向けにビルド
+dart run rps build:windows  # Windows
+dart run rps build:linux    # Linux
+dart run rps build:macos    # macOS
+```
+
 > [!NOTE]
-> 現在、プレビュー版バイナリは **Windows 版のみ** 提供しています。
-> Linux / macOS をお使いの方はソースコードからビルドが必要です。
+> プレビュー版バイナリは **Windows 版のみ** 提供しています。
+> 他のプラットフォームをお使いの方は上記の手順でソースコードからビルドしてください。
 
 ## コントリビューション
 

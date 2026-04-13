@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  charcode:
+    dependency: transitive
+    description:
+      name: charcode
+      sha256: fb0f1107cac15a5ea6ef0a6ef71a807b9e4267c713bb93e00e92d737cc8dbd8a
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   checked_yaml:
     dependency: transitive
     description:
@@ -645,6 +653,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
+  prompts:
+    dependency: transitive
+    description:
+      name: prompts
+      sha256: "3773b845e85a849f01e793c4fc18a45d52d7783b4cb6c0569fad19f9d0a774a1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   pub_semver:
     dependency: "direct main"
     description:
@@ -685,6 +701,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.1"
+  rps:
+    dependency: "direct dev"
+    description:
+      name: rps
+      sha256: "60c1a7c9f9d770fe990af0415d64ae355dc9bb17583e9da51588578471e3a7cb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.0"
   safe_url_check:
     dependency: transitive
     description:

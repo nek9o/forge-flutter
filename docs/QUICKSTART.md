@@ -64,8 +64,10 @@ cd forge-flutter
 # Install dependencies
 flutter pub get
 
-# Build and run for Windows
-flutter run -d windows
+# Build (using rps)
+dart run rps build:windows # Windows
+# Or
+flutter run -d windows    # Normal run (for debugging)
 ```
 
 > [!NOTE]

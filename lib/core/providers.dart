@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'api/forge_api_client.dart';
+import 'layout_preferences.dart';
 
-final apiUrlProvider = StateProvider<String>((ref) => 'http://127.0.0.1:7861');
+final apiUrlProvider = StateProvider<String>((ref) => LayoutPreferences.getApiUrl());
 
 final forgeApiClientProvider = Provider<ForgeApiClient>((ref) {
   final baseUrl = ref.watch(apiUrlProvider);

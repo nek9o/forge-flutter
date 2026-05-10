@@ -6,6 +6,7 @@ import 'package:native_context_menu/native_context_menu.dart' as ncm;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/layout_preferences.dart';
 import '../../../core/providers.dart';
 import '../../preview/store/preview_store.dart';
 import '../models/generation_settings.dart';
@@ -931,6 +932,7 @@ class _ApiConnectionErrorDialogState
                     initial: TextEditingValue(text: ref.read(apiUrlProvider)),
                     onChange: (value) {
                       ref.read(apiUrlProvider.notifier).state = value.text;
+                      LayoutPreferences.setApiUrl(value.text);
                     },
                   ),
                 ),

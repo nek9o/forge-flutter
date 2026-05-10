@@ -6,9 +6,13 @@ import 'package:window_manager/window_manager.dart';
 
 import 'features/home/ui/home_page.dart';
 import 'features/settings/store/settings_store.dart';
+import 'core/layout_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize LayoutPreferences
+  await LayoutPreferences.init();
 
   // Window Manager initialization for Desktop
   await windowManager.ensureInitialized();

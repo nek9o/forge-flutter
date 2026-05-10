@@ -12,7 +12,7 @@ class ForgeApiClient {
   final String baseUrl;
   final http.Client _client;
 
-  ForgeApiClient({this.baseUrl = 'http://127.0.0.1:7861', http.Client? client})
+  ForgeApiClient({this.baseUrl = 'http://127.0.0.1:7860', http.Client? client})
     : _client = client ?? http.Client();
 
   Future<List<SDModel>> getSDModels() async {

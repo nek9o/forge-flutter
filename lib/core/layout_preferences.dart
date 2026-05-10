@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LayoutPreferences {
@@ -10,6 +11,7 @@ class LayoutPreferences {
   static const String _previewTabIndexKey = 'preview_tab_index';
   static const String _settingsExpandedKey = 'settings_expanded';
   static const String _showMonitorKey = 'show_monitor';
+  static const String _apiUrlKey = 'api_url';
 
   static SharedPreferences? _prefs;
 
@@ -105,6 +107,16 @@ class LayoutPreferences {
   static Future<void> setShowMonitor(bool show) async {
     await init();
     await _prefs?.setBool(_showMonitorKey, show);
+  }
+
+  // API URL
+  static String getApiUrl() {
+    return _prefs?.getString(_apiUrlKey) ?? 'http://127.0.0.1:7860';
+  }
+
+  static Future<void> setApiUrl(String url) async {
+    await init();
+    await _prefs?.setString(_apiUrlKey, url);
   }
 
   // Clear all preferences

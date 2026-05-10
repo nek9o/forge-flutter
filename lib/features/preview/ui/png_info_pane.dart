@@ -137,24 +137,7 @@ class PngInfoPane extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (effectiveMetadata.containsKey('steps'))
-                  _buildSettingChip(context, 'Steps', effectiveMetadata['steps'].toString()),
-                if (effectiveMetadata.containsKey('sampler'))
-                  _buildSettingChip(context, 'Sampler', effectiveMetadata['sampler'].toString()),
-                if (effectiveMetadata.containsKey('cfg_scale'))
-                  _buildSettingChip(context, 'CFG', effectiveMetadata['cfg_scale'].toString()),
-                if (effectiveMetadata.containsKey('seed'))
-                  _buildSettingChip(context, 'Seed', effectiveMetadata['seed'].toString()),
-                if (effectiveMetadata.containsKey('width') && effectiveMetadata.containsKey('height'))
-                  _buildSettingChip(context, 'Size', '${effectiveMetadata['width']}x${effectiveMetadata['height']}'),
-                if (effectiveMetadata.containsKey('model'))
-                  _buildSettingChip(context, 'Model', effectiveMetadata['model'].toString()),
-              ],
-            ),
+            ..._buildMetadataSections(context, effectiveMetadata),
             if (!effectiveMetadata.containsKey('steps') && effectiveRawParameters != null) ...[
               const SizedBox(height: 6),
               SelectableText(
@@ -176,6 +159,148 @@ class PngInfoPane extends ConsumerWidget {
     );
   }
 
+  List<Widget> _buildMetadataSections(BuildContext context, Map<String, dynamic> metadata) {
+    final chips = <Widget>[];
+    final longItems = <Widget>[];
+
+    final displayedKeys = <String>{
+      'prompt',
+      'negative_prompt',
+      'steps',
+      'sampler',
+      'cfg_scale',
+      'seed',
+      'width',
+      'height',
+      'model',
+      'model_hash',
+      'scheduler',
+      'parameters',
+      // 標準チップとして表示する項目の元キー名も除外対象にする
+      'Steps',
+      'Sampler',
+      'CFG scale',
+      'cfg scale',
+      'Seed',
+      'Size',
+      'size',
+      'Model',
+      'Model hash',
+      'model hash',
+      'Schedule',
+      'schedule',
+      'Scheduler',
+      'Schedule type',
+      'schedule_type',
+    };
+
+    // Build standard chips in order
+    void addChip(String label, String value) {
+      chips.add(_buildSettingChip(context, label, value));
+    }
+
+    if (metadata.containsKey('steps')) {
+      addChip('Steps', metadata['steps'].toString());
+    }
+    if (metadata.containsKey('sampler')) {
+      addChip('Sampler', metadata['sampler'].toString());
+    }
+    if (metadata.containsKey('scheduler')) {
+      addChip('Schedule', metadata['scheduler'].toString());
+    }
+    if (metadata.containsKey('cfg_scale')) {
+      addChip('CFG', metadata['cfg_scale'].toString());
+    }
+    if (metadata.containsKey('seed')) {
+      addChip('Seed', metadata['seed'].toString());
+    }
+    if (metadata.containsKey('width') && metadata.containsKey('height')) {
+      addChip('Size', '${metadata['width']}x${metadata['height']}');
+    }
+    if (metadata.containsKey('model')) {
+      addChip('Model', metadata['model'].toString());
+    }
+
+    // Build chips for everything else
+    final sortedKeys = metadata.keys.toList()..sort();
+    for (final key in sortedKeys) {
+      final snakeKey = key.toLowerCase().replaceAll(' ', '_');
+      if (displayedKeys.contains(key) || displayedKeys.contains(snakeKey)) {
+        continue;
+      }
+
+      final value = metadata[key];
+      if (value == null || value.toString().isEmpty) continue;
+
+      final valueStr = value.toString();
+
+      // 先に両方のキーを displayedKeys に登録して重複を防ぐ
+      displayedKeys.add(key);
+      displayedKeys.add(snakeKey);
+
+      // If value is long or contains many commas/special chars, treat as long item
+      if (valueStr.length > 50 || key.toLowerCase().contains('hashes')) {
+        longItems.add(_buildLongSettingItem(context, _formatKey(key), valueStr));
+      } else {
+        chips.add(_buildSettingChip(context, _formatKey(key), valueStr));
+      }
+    }
+
+    return [
+      if (chips.isNotEmpty)
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: chips,
+        ),
+      if (longItems.isNotEmpty) ...[
+        const SizedBox(height: 16),
+        ...longItems,
+      ],
+    ];
+  }
+
+  Widget _buildLongSettingItem(BuildContext context, String label, String value) {
+    final fTheme = FTheme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: fTheme.colors.mutedForeground,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w600,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 4),
+          SelectableText(
+            value,
+            style: GoogleFonts.geistMono(
+              fontSize: 11,
+              color: fTheme.colors.foreground,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatKey(String key) {
+    // If it's already CamelCase or has spaces, keep it
+    if (key.contains(' ') || RegExp(r'[A-Z]').hasMatch(key)) {
+      return key;
+    }
+    // Otherwise convert snake_case to Title Case
+    return key.split('_').map((word) {
+      if (word.isEmpty) return '';
+      return word[0].toUpperCase() + word.substring(1);
+    }).join(' ');
+  }
+
   Widget _buildSettingChip(BuildContext context, String label, String value) {
     final fTheme = FTheme.of(context);
     return Container(
@@ -185,26 +310,27 @@ class PngInfoPane extends ConsumerWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: fTheme.colors.border.withAlpha(40)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$label: ',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: fTheme.colors.mutedForeground,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: fTheme.colors.mutedForeground,
+              ),
             ),
-          ),
-          Text(
-            value,
-            style: GoogleFonts.geistMono(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: fTheme.colors.foreground,
+            TextSpan(
+              text: value,
+              style: GoogleFonts.geistMono(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: fTheme.colors.foreground,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

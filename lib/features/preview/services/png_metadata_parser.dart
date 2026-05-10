@@ -194,60 +194,94 @@ class PngMetadataParser {
 
     // 設定行のパース
     if (settingsLine.isNotEmpty) {
-      // カンマによる分割だが、引用符内のカンマは無視する必要がある
-      // シンプルな正規表現では困難なため、手動で分割するか、強化された正規表現を使用
-      // ここでは、よくあるキーのリストを使って分割を改善する例
-      final keys = [
-        'Steps', 'Sampler', 'CFG scale', 'Seed', 'Size', 'Model hash', 'Model',
-        'Batch size', 'Batch pos', 'Denoising strength', 'Clip skip', 
-        'ENSD', 'Hires upscale', 'Hires upscaler', 'Hires steps', 
-        'Lora hashes', 'TI hashes', 'Schedule', 'Scheduler'
-      ];
-      
-      for (final key in keys) {
-        final pattern = RegExp('$key:\\s*([^,]+)(?:,\\s*|\$)');
-        final match = pattern.firstMatch(settingsLine);
-        if (match != null) {
-          final value = match.group(1)?.trim();
-          if (value != null) {
-            switch (key) {
-              case 'Steps':
-                result['steps'] = int.tryParse(value);
-                break;
-              case 'Sampler':
-                result['sampler'] = value;
-                break;
-              case 'CFG scale':
-                result['cfg_scale'] = double.tryParse(value);
-                break;
-              case 'Seed':
-                result['seed'] = int.tryParse(value);
-                break;
-              case 'Size':
-                final sizeParts = value.split('x');
-                if (sizeParts.length == 2) {
-                  result['width'] = int.tryParse(sizeParts[0]);
-                  result['height'] = int.tryParse(sizeParts[1]);
-                }
-                break;
-              case 'Model':
-                result['model'] = value;
-                break;
-              case 'Model hash':
-                result['model_hash'] = value;
-                break;
-              case 'Schedule':
-              case 'Scheduler':
-                result['scheduler'] = value;
-                break;
-              default:
-                result[key.toLowerCase().replaceAll(' ', '_')] = value;
-            }
+      final parts = <String>[];
+      var currentPart = StringBuffer();
+      var inQuotes = false;
+
+      for (var i = 0; i < settingsLine.length; i++) {
+        final char = settingsLine[i];
+        if (char == '"') {
+          inQuotes = !inQuotes;
+          currentPart.write(char);
+        } else if (char == ',' && !inQuotes) {
+          parts.add(currentPart.toString().trim());
+          currentPart = StringBuffer();
+          // Skip space after comma if present
+          if (i + 1 < settingsLine.length && settingsLine[i + 1] == ' ') {
+            i++;
           }
+        } else {
+          currentPart.write(char);
+        }
+      }
+      if (currentPart.isNotEmpty) {
+        parts.add(currentPart.toString().trim());
+      }
+
+      for (var part in parts) {
+        final colonIndex = part.indexOf(': ');
+        if (colonIndex != -1) {
+          final key = part.substring(0, colonIndex).trim();
+          final value = part.substring(colonIndex + 2).trim();
+          
+          // Remove wrapping quotes from value if present
+          var cleanValue = value;
+          if (cleanValue.startsWith('"') && cleanValue.endsWith('"')) {
+            cleanValue = cleanValue.substring(1, cleanValue.length - 1);
+          }
+          
+          _addParameterToResult(key, cleanValue, result);
         }
       }
     }
 
     return result;
+  }
+
+  static void _addParameterToResult(String key, String value, Map<String, dynamic> result) {
+    // Standardize some keys for internal use
+    switch (key) {
+      case 'Steps':
+        result['steps'] = int.tryParse(value);
+        break;
+      case 'Sampler':
+        result['sampler'] = value;
+        break;
+      case 'CFG scale':
+        result['cfg_scale'] = double.tryParse(value);
+        break;
+      case 'Seed':
+        result['seed'] = int.tryParse(value);
+        break;
+      case 'Size':
+        final sizeParts = value.split('x');
+        if (sizeParts.length == 2) {
+          result['width'] = int.tryParse(sizeParts[0]);
+          result['height'] = int.tryParse(sizeParts[1]);
+        }
+        break;
+      case 'Model':
+        result['model'] = value;
+        break;
+      case 'Model hash':
+        result['model_hash'] = value;
+        break;
+      case 'Schedule':
+      case 'Scheduler':
+      case 'Schedule type':
+        result['scheduler'] = value;
+        break;
+    }
+    
+    // Always store the original key/value or snake_case key
+    final snakeKey = key.toLowerCase().replaceAll(' ', '_');
+    if (!result.containsKey(snakeKey)) {
+      result[snakeKey] = value;
+    }
+    
+    // Also store with original key if it's different from what we already have
+    if (!result.containsKey(key)) {
+      result[key] = value;
+    }
   }
 }

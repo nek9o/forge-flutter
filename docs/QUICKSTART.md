@@ -85,11 +85,11 @@ The **API URL** input field is at the top of the settings panel.
 
 | Item                            | Value                   |
 | ------------------------------- | ----------------------- |
-| Default value                   | `http://127.0.0.1:7861` |
+| Default value                   | `http://127.0.0.1:7860` |
 | Forge Classic Neo standard port | `http://127.0.0.1:7860` |
 
 > [!WARNING]
-> The app's default value (port `7861`) may differ from Forge Classic Neo's standard port (`7860`).
+> The app's default value (port `7860`) is the same as Forge Classic Neo's standard port, but it may vary depending on your environment.
 > Check the port number shown in Forge's startup log and update the API URL if needed.
 
 When connected successfully, the model list and sampler options will load automatically in the settings panel.

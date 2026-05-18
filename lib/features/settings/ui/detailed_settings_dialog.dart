@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/layout_preferences.dart';
 import '../../../core/providers.dart';
 import '../store/settings_store.dart';
 
@@ -36,6 +37,7 @@ class DetailedSettingsDialog extends ConsumerWidget {
                 initial: TextEditingValue(text: ref.read(apiUrlProvider)),
                 onChange: (value) {
                   ref.read(apiUrlProvider.notifier).state = value.text;
+                  LayoutPreferences.setApiUrl(value.text);
                 },
               ),
             ),

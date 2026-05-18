@@ -752,6 +752,7 @@ class _PreviewPaneState extends ConsumerState<PreviewPane> {
                     initial: TextEditingValue(text: ref.read(apiUrlProvider)),
                     onChange: (value) {
                       ref.read(apiUrlProvider.notifier).state = value.text;
+                      LayoutPreferences.setApiUrl(value.text);
                     },
                   ),
                 ),

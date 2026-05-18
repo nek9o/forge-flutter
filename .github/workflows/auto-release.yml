@@ -45,6 +45,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          channel: 'stable'
           flutter-version: "3.41.1"
 
       - name: Enable Windows Desktop
@@ -77,7 +78,16 @@ jobs:
         run: flutter pub get
 
       - name: Build Windows (includes License Generation)
-        run: dart run rps build:windows
+        shell: pwsh
+        run: |
+          # Ensure correct Flutter/Dart SDK resolution from subosito/flutter-action
+          if ($env:FLUTTER_HOME) {
+            $env:FLUTTER_ROOT = $env:FLUTTER_HOME
+            $env:PATH = "$env:FLUTTER_ROOT\bin;$env:FLUTTER_ROOT\bin\cache\dart-sdk\bin;" + $env:PATH
+          }
+          flutter config --enable-windows-desktop
+          flutter pub run rps gen
+          flutter build windows --release
 
       - name: Create Zip Archive
         shell: pwsh

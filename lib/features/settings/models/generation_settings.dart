@@ -114,4 +114,48 @@ class GenerationSettings {
 
     return map;
   }
+
+  factory GenerationSettings.fromMap(Map<String, dynamic> map) {
+    return GenerationSettings(
+      samplerName: map['samplerName'] as String? ?? 'Euler a',
+      width: map['width'] as int? ?? 512,
+      height: map['height'] as int? ?? 512,
+      steps: map['steps'] as int? ?? 20,
+      cfgScale: (map['cfgScale'] as num?)?.toDouble() ?? 7.0,
+      seed: map['seed'] as int? ?? -1,
+      scheduler: map['scheduler'] as String? ?? 'Automatic',
+      saveImages: map['saveImages'] as bool? ?? true,
+      batchSize: map['batchSize'] as int? ?? 1,
+      batchCount: map['batchCount'] as int? ?? 1,
+      sdMode: map['sdMode'] as String? ?? 'SD',
+      uiDebugMode: map['uiDebugMode'] as bool? ?? false,
+      enableHires: map['enableHires'] as bool? ?? false,
+      hiresUpscaler: map['hiresUpscaler'] as String?,
+      hiresSteps: map['hiresSteps'] as int? ?? 20,
+      denoisingStrength: (map['denoisingStrength'] as num?)?.toDouble() ?? 0.7,
+      hrScale: (map['hrScale'] as num?)?.toDouble() ?? 2.0,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'samplerName': samplerName,
+      'width': width,
+      'height': height,
+      'steps': steps,
+      'cfgScale': cfgScale,
+      'seed': seed,
+      'scheduler': scheduler,
+      'saveImages': saveImages,
+      'batchSize': batchSize,
+      'batchCount': batchCount,
+      'sdMode': sdMode,
+      'uiDebugMode': uiDebugMode,
+      'enableHires': enableHires,
+      'hiresUpscaler': hiresUpscaler,
+      'hiresSteps': hiresSteps,
+      'denoisingStrength': denoisingStrength,
+      'hrScale': hrScale,
+    };
+  }
 }

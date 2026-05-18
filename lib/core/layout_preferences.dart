@@ -119,6 +119,25 @@ class LayoutPreferences {
     await _prefs?.setString(_apiUrlKey, url);
   }
 
+  // Generation Settings
+  static Map<String, dynamic>? getGenerationSettings() {
+    final jsonString = _prefs?.getString('generation_settings');
+    if (jsonString != null) {
+      try {
+        return json.decode(jsonString) as Map<String, dynamic>;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  static Future<void> setGenerationSettings(Map<String, dynamic> settings) async {
+    await init();
+    final jsonString = json.encode(settings);
+    await _prefs?.setString('generation_settings', jsonString);
+  }
+
   // Clear all preferences
   static Future<void> clearAll() async {
     await init();

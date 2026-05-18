@@ -43,13 +43,28 @@ jobs:
           echo "Generated version: ${version}"
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: "3.41.1"
+        shell: pwsh
+        run: |
+          # subosito/flutter-action がバージョン指定を無視する問題を回避するため、
+          # 公式アーカイブから直接 Flutter SDK をダウンロード・展開する
+          $flutterVersion = "3.41.1"
+          $flutterUrl = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_${flutterVersion}-stable.zip"
+          $installDir = "C:\flutter-sdk"
 
-      - name: Enable Windows Desktop
-        run: flutter config --enable-windows-desktop
+          Write-Host "Flutter SDK ${flutterVersion} をダウンロード中..."
+          Invoke-WebRequest -Uri $flutterUrl -OutFile flutter.zip -UseBasicParsing
+
+          Write-Host "展開中..."
+          Expand-Archive flutter.zip -DestinationPath $installDir -Force
+          Remove-Item flutter.zip
+
+          # PATH に追加(flutter/bin と dart-sdk/bin)
+          $flutterBin = "$installDir\flutter\bin"
+          echo $flutterBin | Out-File -FilePath $env:GITHUB_PATH -Append
+
+          # バージョン確認
+          & "$flutterBin\flutter.bat" --version
+          & "$flutterBin\flutter.bat" config --enable-windows-desktop
 
       - name: Update Version Files
         shell: pwsh
@@ -78,16 +93,8 @@ jobs:
         run: flutter pub get
 
       - name: Build Windows (includes License Generation)
-        shell: pwsh
         run: |
-          # Ensure correct Flutter/Dart SDK resolution from subosito/flutter-action
-          if ($env:FLUTTER_HOME) {
-            $env:FLUTTER_ROOT = $env:FLUTTER_HOME
-            $env:PATH = "$env:FLUTTER_ROOT\bin;$env:FLUTTER_ROOT\bin\cache\dart-sdk\bin;" + $env:PATH
-          }
-          flutter config --enable-windows-desktop
-          flutter pub run rps gen
-          flutter build windows --release
+          dart run rps build:windows
 
       - name: Create Zip Archive
         shell: pwsh

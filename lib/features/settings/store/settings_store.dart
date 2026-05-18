@@ -7,6 +7,7 @@ import '../models/sampler.dart';
 import '../models/scheduler.dart';
 import '../models/sd_model.dart';
 import '../models/upscaler.dart';
+import '../../../core/layout_preferences.dart';
 
 final sdModelsProvider = FutureProvider<List<SDModel>>((ref) async {
   final client = ref.watch(forgeApiClientProvider);
@@ -36,7 +37,21 @@ final upscalersProvider = FutureProvider<List<Upscaler>>((ref) async {
 final selectedModelProvider = StateProvider<String?>((ref) => null);
 
 class GenerationSettingsNotifier extends StateNotifier<GenerationSettings> {
-  GenerationSettingsNotifier() : super(GenerationSettings());
+  GenerationSettingsNotifier() : super(_loadInitialSettings());
+
+  static GenerationSettings _loadInitialSettings() {
+    final saved = LayoutPreferences.getGenerationSettings();
+    if (saved != null) {
+      return GenerationSettings.fromMap(saved);
+    }
+    return GenerationSettings();
+  }
+
+  @override
+  set state(GenerationSettings value) {
+    super.state = value;
+    LayoutPreferences.setGenerationSettings(value.toMap());
+  }
 
   void updateSampler(String sampler) {
     state = state.copyWith(samplerName: sampler);

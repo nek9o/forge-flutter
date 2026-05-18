@@ -45,8 +45,7 @@ jobs:
       - name: Setup Flutter
         shell: pwsh
         run: |
-          # subosito/flutter-action がバージョン指定を無視する問題を回避するため、
-          # 公式アーカイブから直接 Flutter SDK をダウンロード・展開する
+          # プリインストールのFlutter(3.44.0)との競合を避けるため、公式アーカイブから直接取得
           $flutterVersion = "3.41.1"
           $flutterUrl = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_${flutterVersion}-stable.zip"
           $installDir = "C:\flutter-sdk"
@@ -58,13 +57,20 @@ jobs:
           Expand-Archive flutter.zip -DestinationPath $installDir -Force
           Remove-Item flutter.zip
 
-          # PATH に追加(flutter/bin と dart-sdk/bin)
-          $flutterBin = "$installDir\flutter\bin"
-          echo $flutterBin | Out-File -FilePath $env:GITHUB_PATH -Append
-
-          # バージョン確認
+          $flutterRoot = "$installDir\flutter"
+          $flutterBin = "$flutterRoot\bin"
+          
+          # 環境変数 FLUTTER_ROOT を上書き
+          echo "FLUTTER_ROOT=$flutterRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          
+          # flutter.bat --version を実行して dart-sdk などを初期化
           & "$flutterBin\flutter.bat" --version
           & "$flutterBin\flutter.bat" config --enable-windows-desktop
+
+          # PATH に flutter\bin と dart-sdk\bin を両方追加して最優先にする
+          $dartBin = "$flutterRoot\bin\cache\dart-sdk\bin"
+          echo $flutterBin | Out-File -FilePath $env:GITHUB_PATH -Append
+          echo $dartBin | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Update Version Files
         shell: pwsh

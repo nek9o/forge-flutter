@@ -39,8 +39,14 @@ class PngMetadataParser {
         final nullLoc = data.indexOf(0);
         if (nullLoc != -1) {
           try {
-            final key = utf8.decode(data.sublist(0, nullLoc), allowMalformed: true);
-            final value = utf8.decode(data.sublist(nullLoc + 1), allowMalformed: true);
+            final key = utf8.decode(
+              data.sublist(0, nullLoc),
+              allowMalformed: true,
+            );
+            final value = utf8.decode(
+              data.sublist(nullLoc + 1),
+              allowMalformed: true,
+            );
             metadata[key] = value;
           } catch (e) {
             print('Error decoding tEXt chunk: $e');
@@ -54,12 +60,15 @@ class PngMetadataParser {
         final data = bytes.sublist(offset + 8, offset + 8 + length);
         var pos = data.indexOf(0);
         if (pos != -1 && pos + 2 <= data.length) {
-          final keyword = utf8.decode(data.sublist(0, pos), allowMalformed: true);
+          final keyword = utf8.decode(
+            data.sublist(0, pos),
+            allowMalformed: true,
+          );
           pos++; // skip null
           final compressionFlag = data[pos];
           // final compressionMethod = data[pos + 1];
           pos += 2; // skip flag and method
-          
+
           // skip Language tag
           final langPos = data.indexOf(0, pos);
           if (langPos != -1) {
@@ -92,7 +101,10 @@ class PngMetadataParser {
         final data = bytes.sublist(offset + 8, offset + 8 + length);
         final nullLoc = data.indexOf(0);
         if (nullLoc != -1 && nullLoc + 1 < data.length) {
-          final keyword = utf8.decode(data.sublist(0, nullLoc), allowMalformed: true);
+          final keyword = utf8.decode(
+            data.sublist(0, nullLoc),
+            allowMalformed: true,
+          );
           // compression method is at nullLoc + 1
           try {
             final compressedData = data.sublist(nullLoc + 2);
@@ -128,7 +140,7 @@ class PngMetadataParser {
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
       try {
         final json = jsonDecode(trimmed) as Map<String, dynamic>;
-        
+
         // JSON 各項目を標準的なキーに変換、またはそのままコピー
         result['prompt'] = json['prompt'] ?? '';
         result['negative_prompt'] = json['negative_prompt'] ?? '';
@@ -139,14 +151,14 @@ class PngMetadataParser {
         result['width'] = json['width'];
         result['height'] = json['height'];
         result['scheduler'] = json['scheduler'];
-        
+
         // その他すべての項目を含める
         json.forEach((key, value) {
           if (!result.containsKey(key)) {
             result[key] = value;
           }
         });
-        
+
         return result;
       } catch (e) {
         print('Error decoding JSON info: $e');
@@ -223,13 +235,13 @@ class PngMetadataParser {
         if (colonIndex != -1) {
           final key = part.substring(0, colonIndex).trim();
           final value = part.substring(colonIndex + 2).trim();
-          
+
           // Remove wrapping quotes from value if present
           var cleanValue = value;
           if (cleanValue.startsWith('"') && cleanValue.endsWith('"')) {
             cleanValue = cleanValue.substring(1, cleanValue.length - 1);
           }
-          
+
           _addParameterToResult(key, cleanValue, result);
         }
       }
@@ -238,7 +250,11 @@ class PngMetadataParser {
     return result;
   }
 
-  static void _addParameterToResult(String key, String value, Map<String, dynamic> result) {
+  static void _addParameterToResult(
+    String key,
+    String value,
+    Map<String, dynamic> result,
+  ) {
     // Standardize some keys for internal use
     switch (key) {
       case 'Steps':
@@ -272,13 +288,13 @@ class PngMetadataParser {
         result['scheduler'] = value;
         break;
     }
-    
+
     // Always store the original key/value or snake_case key
     final snakeKey = key.toLowerCase().replaceAll(' ', '_');
     if (!result.containsKey(snakeKey)) {
       result[snakeKey] = value;
     }
-    
+
     // Also store with original key if it's different from what we already have
     if (!result.containsKey(key)) {
       result[key] = value;

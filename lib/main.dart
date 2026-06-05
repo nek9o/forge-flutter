@@ -40,7 +40,12 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(generationSettingsProvider);
     // UIデバッグモードの適用
-    debugPaintSizeEnabled = settings.uiDebugMode;
+    if (debugPaintSizeEnabled != settings.uiDebugMode) {
+      debugPaintSizeEnabled = settings.uiDebugMode;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        RendererBinding.instance.performReassemble();
+      });
+    }
 
     final fThemeData = FThemes.zinc.dark;
 

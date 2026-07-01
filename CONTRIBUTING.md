@@ -1,6 +1,6 @@
-# Contributing to Forge Flutter Client
+# Contributing to Forge Desktop Client
 
-Thank you for your interest in Forge Flutter Client! This project is currently in alpha, and we warmly welcome feedback and contributions from the community.
+Thank you for your interest in Forge Desktop Client! This project is currently in alpha, and we warmly welcome feedback and contributions from the community.
 
 ## How to Contribute
 

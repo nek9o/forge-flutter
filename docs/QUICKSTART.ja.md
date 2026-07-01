@@ -1,6 +1,6 @@
 # クイックスタートガイド
 
-Forge Flutter Client を使い始めるための手順を説明します。
+Forge Desktop Client を使い始めるための手順を説明します。
 
 > [!IMPORTANT]
 > 本ガイドは **StabilityMatrix** から **Stable Diffusion WebUI Forge (Forge Classic Neo)** をインストールし、**API 経由** で接続する構成を前提としています。
@@ -18,7 +18,7 @@ Forge Flutter Client を使い始めるための手順を説明します。
 
 ## 1. Forge Classic Neo の API を有効にする
 
-Forge Flutter Client は Forge の API を使って通信するため、Forge 側で API を有効にする必要があります。
+Forge Desktop Client は Forge の API を使って通信するため、Forge 側で API を有効にする必要があります。
 
 ### 手順
 
@@ -46,7 +46,7 @@ Swagger UI が表示され、APIエンドポイントの一覧が確認できれ
 
 ---
 
-## 2. Forge Flutter Client を取得する
+## 2. Forge Desktop Client を取得する
 
 ### リリースビルドを使用する場合
 

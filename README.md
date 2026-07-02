@@ -1,4 +1,9 @@
-# Forge Flutter Client
+# Desktop Client for Forge
+
+> [!NOTE]
+> This project is not affiliated with Google LLC or the Flutter SDK team.\
+> "Flutter" is a trademark of Google LLC.\
+> The application is built using the Flutter framework.
 
 [![Version](https://img.shields.io/badge/version-v2026.6.6--1-orange)](https://github.com/nek9o/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/nek9o/forge-flutter)
@@ -10,7 +15,8 @@
   <img src="docs/images/preview_main.png" width="100%" alt="Preview Main">
 </div>
 
-Forge Flutter Client is an ultra-lightweight desktop application for [Forge Classic Neo](https://github.com/Haoming02/sd-webui-forge-classic), designed to minimize memory consumption during image generation.
+Desktop Client for Forge is an ultra-lightweight desktop application for [Forge Classic Neo](https://github.com/Haoming02/sd-webui-forge-classic), designed to minimize memory consumption during image generation.\
+_Note: This app is an **unofficial (third-party)** client app developed by an individual and is in no way affiliated with the official provider._
 
 <details>
 <summary>📸 <strong>Screenshot Gallery</strong> (Click to expand)</summary>
@@ -26,7 +32,7 @@ Forge Flutter Client is an ultra-lightweight desktop application for [Forge Clas
 - **Concept:** An ultra-lightweight desktop app for Forge Classic Neo
 - **Goal:** Minimize memory usage to free up resources for generation
 - **Performance:**
-  - **Forge Flutter Client:** ~55 MB (Startup) / ~100 MB (Processing) / ~80 MB (Post-generation)
+  - **Desktop Client for Forge:** ~55 MB (Startup) / ~100 MB (Processing) / ~80 MB (Post-generation)
   - **Browser WebUI:** ~300 MB+ (Startup)
 
 ## Key Features
@@ -51,7 +57,7 @@ Existing WebUI solutions (Gradio-based) are feature-rich but resource-heavy. Bro
 
 ## Quick Start
 
-New to Forge Flutter Client? See the [Quick Start Guide](docs/QUICKSTART.md) for setup instructions.
+New to Desktop Client for Forge? See the [Quick Start Guide](docs/QUICKSTART.md) for setup instructions.
 
 ## Build and Run
 

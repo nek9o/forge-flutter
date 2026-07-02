@@ -1,4 +1,9 @@
-# Forge Flutter Client
+# Desktop Client for Forge
+
+> [!NOTE]
+> 本プロジェクトは、Google LLC および Flutter SDK チームとは一切関係がありません。\
+> "Flutter" は Google LLC の商標です。\
+> 本アプリケーションは Flutter フレームワークを使用して構築されています。
 
 [![Version](https://img.shields.io/badge/version-v2026.6.6--1-orange)](https://github.com/nek9o/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/nek9o/forge-flutter)
@@ -10,7 +15,8 @@
   <img src="docs/images/preview_main.png" width="100%" alt="Preview Main">
 </div>
 
-Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-webui-forge-classic) 用の超軽量デスクトップアプリケーションです。画像生成時のメモリ消費を極限まで抑えることをコンセプトに開発されています。
+Desktop Client for Forge は、[Forge Classic Neo](https://github.com/Haoming02/sd-webui-forge-classic) 用の超軽量デスクトップアプリケーションです。画像生成時のメモリ消費を極限まで抑えることをコンセプトに開発されています。\
+※本アプリは個人が開発した**非公式(サードパーティ製)**のクライアントアプリであり、提供元公式とは一切関係ありません。
 
 <details>
 <summary>📸 <strong>スクリーンショット ギャラリー</strong> (クリックして展開)</summary>
@@ -26,7 +32,7 @@ Forge Flutter Client は、[Forge Classic Neo](https://github.com/Haoming02/sd-w
 - **コンセプト:** Forge Classic Neo 用の超軽量デスクトップクライアント
 - **目的:** 生成リソース確保のため、メモリ消費を最小限に抑える
 - **パフォーマンス:**
-  - **Forge Flutter Client:** 起動直後 約55MB / 生成中 約100MB / 生成直後 約80MB
+  - **Desktop Client for Forge:** 起動直後 約55MB / 生成中 約100MB / 生成直後 約80MB
   - **ブラウザ版 WebUI:** 起動直後 約300MB以上
 
 ## 主要機能

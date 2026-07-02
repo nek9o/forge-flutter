@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'core/layout_preferences.dart';
 import 'features/home/ui/home_page.dart';
 import 'features/settings/store/settings_store.dart';
-import 'core/layout_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +23,7 @@ void main() async {
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
-    title: 'Forge Flutter Client',
+    title: 'Desktop Client for Forge',
   );
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
@@ -53,7 +53,7 @@ class MyApp extends ConsumerWidget {
       data: fThemeData,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Forge Flutter Client',
+        title: 'Desktop Client for Forge',
         theme: ThemeData(
           brightness: Brightness.dark,
           scaffoldBackgroundColor: fThemeData.colors.background,
@@ -68,8 +68,10 @@ class MyApp extends ConsumerWidget {
           ),
           fontFamily: 'packages/forui_assets/Inter',
         ),
-        builder: (context, child) =>
-            FTheme(data: fThemeData, child: FToaster(child: child!)),
+        builder: (context, child) => FTheme(
+          data: fThemeData,
+          child: FToaster(child: child!),
+        ),
         home: const HomePage(),
       ),
     );

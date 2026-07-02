@@ -1,4 +1,4 @@
-name: forge_flutter
+name: desktop_client_for_forge
 description: "A lightweight desktop client for Forge Classic Neo."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

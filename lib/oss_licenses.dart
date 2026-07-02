@@ -8,7 +8,7 @@
 // https://pub.dev/packages/dart_pubspec_licenses
 
 /// This package.
-const thisPackage = _forge_flutter;
+const thisPackage = _desktop_client_for_forge;
 
 /// All dependencies including transitive dependencies.
 const allDependencies = <Package>[
@@ -38039,12 +38039,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.''',
   );
 
-/// forge_flutter 2026.6.6+1
-const _forge_flutter = Package(
-    name: 'forge_flutter',
+/// desktop_client_for_forge 2026.7.2+1
+const _desktop_client_for_forge = Package(
+    name: 'desktop_client_for_forge',
     description: 'A lightweight desktop client for Forge Classic Neo.',
     authors: [],
-    version: '2026.6.6+1',
+    version: '2026.7.2+1',
     spdxIdentifiers: ['BlueOak-1.0.0'],
     isMarkdown: true,
     isSdk: false,

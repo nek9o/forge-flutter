@@ -5,7 +5,7 @@
 > "Flutter" は Google LLC の商標です。\
 > 本アプリケーションは Flutter フレームワークを使用して構築されています。
 
-[![Version](https://img.shields.io/badge/version-v2026.6.6--1-orange)](https://github.com/nek9o/forge-flutter)
+[![Version](https://img.shields.io/badge/version-v2026.7.2--1-orange)](https://github.com/nek9o/forge-flutter)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/nek9o/forge-flutter)
 [![License](https://img.shields.io/badge/license-Blue%20Oak%201.0.0-blue)](LICENSE.md)
 
